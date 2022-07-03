@@ -13,5 +13,11 @@ class AppImages {
   static const three60Circle = "assets/images/three360Circle.png";
   static const walkieTalkiComplete = "assets/images/walkie_talkie_complete.png";
   static const three60Small = "assets/images/360_small.png";
+  static const chatIcon = "assets/images/icons/chat_icon.svg";
+  static const messageIcon = "assets/images/icons/message.svg";
+  static const contactIocn = "assets/images/icons/contact_icon.svg";
+  static const channelIcon = "assets/images/icons/channel_icon.svg";
+  static const menuIcon = "assets/images/icons/menu-mobile.svg";
+  static const createChannelOptionsBg = "assets/images/create_channel_options.png";
 
 }

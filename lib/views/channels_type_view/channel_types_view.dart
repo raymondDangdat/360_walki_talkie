@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:walkie_talkie_360/resources/color_manager.dart';
+import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/channel_types_widget.dart';
-import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
 import '../../resources/font_manager.dart';
 import '../../resources/image_manager.dart';
@@ -56,7 +56,8 @@ class ChannelTypesView extends StatelessWidget {
                 Expanded(
                   child: Column(
                     children: [
-                      ChannelTypeWidget(channelType: AppStrings.corporateChannel,
+                      ChannelTypeWidget(
+                          channelType: AppStrings.corporateChannel,
                           channelDescription: AppStrings.createCorporateOrProgram,
                           channelTypeTextColor: ColorManager.whiteColor,
                           channelTypeContainerColor: ColorManager.orangeColor,
@@ -69,7 +70,8 @@ class ChannelTypesView extends StatelessWidget {
 
                       SizedBox(height: AppSize.s50.h,),
 
-                      ChannelTypeWidget(channelType: AppStrings.personalChannel,
+                      ChannelTypeWidget(
+                          channelType: AppStrings.personalChannel,
                           channelDescription: AppStrings.createPersonalChannel,
                           channelTypeTextColor: ColorManager.darkTextColor,
                           channelTypeContainerColor: ColorManager.textColor,

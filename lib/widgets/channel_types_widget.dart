@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
 import '../resources/color_manager.dart';
@@ -24,7 +25,8 @@ class ChannelTypeWidget extends StatelessWidget {
    required this.channelTypeTextColor, required this.channelTypeContainerColor,
   required this.bigContainerColor, required this.bigContainerBorderColor,
   required this.descriptionTextColor, required this.buttonBgColor,
-  required this.buttonBorderColor, required this.buttonTextColor}) : super(key: key);
+  required this.buttonBorderColor, required this.buttonTextColor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,20 +55,28 @@ class ChannelTypeWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSize.s40)
               ),
               alignment: Alignment.center,
-              child: CustomTextWithLineHeight(text: channelType, textColor: channelTypeTextColor, fontSize: FontSize.s26,),
+              child: CustomTextWithLineHeight(text: channelType,
+                textColor: channelTypeTextColor, fontSize: FontSize.s26,),
             ),
           ),
           Positioned(
               top: AppSize.s30.h,
               left: AppSize.s60.w,
               right: AppSize.s60.w,
-              child: CustomTextWithLineHeight(text: channelDescription, textColor: descriptionTextColor,)
+              child: CustomTextWithLineHeight(
+                text: channelDescription,
+                textColor: descriptionTextColor,)
           ),
           Positioned(
               top: AppSize.s160.h,
               left: AppSize.s60.w,
               right: AppSize.s60.w,
-              child: WalkieButtonBordered(context: context, onTap: (){}, title: AppStrings.clickToCreate, textColor: buttonTextColor, borderColor: ColorManager.deepOrange)
+              child: WalkieButtonBordered(context:
+              context, onTap: (){
+                openNavScreen(context);
+              }, title: AppStrings.clickToCreate,
+                  textColor: buttonTextColor,
+                  borderColor: ColorManager.deepOrange)
           ),
         ],
       ),

@@ -14,3 +14,7 @@ void openGetStartedScreen(BuildContext context) async{
 void openChannelTypeScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.channelTypes);
 }
+
+void openNavScreen(BuildContext context) async{
+  Navigator.pushReplacementNamed(context, Routes.navScreenView);
+}

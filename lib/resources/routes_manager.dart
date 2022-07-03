@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:walkie_talkie_360/resources/strings_manager.dart';
 import 'package:walkie_talkie_360/views/channels_type_view/channel_types_view.dart';
+import 'package:walkie_talkie_360/views/nav_screen/nav_screen_view.dart';
 
 import '../views/create_account_view/create_account_view.dart';
 import '../views/get_started_screen/get_started_screen.dart';
@@ -13,6 +14,7 @@ class Routes {
   static const String createAccount = "/create_account";
   static const String getStartedScreen = "/get_started_screen";
   static const String channelTypes = "/channel_types";
+  static const navScreenView = "/nav_screen";
 
 }
 
@@ -27,6 +29,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const GetStartedScreen());
       case Routes.channelTypes:
         return MaterialPageRoute(builder: (_) => const ChannelTypesView());
+      case Routes.navScreenView:
+        return MaterialPageRoute(builder: (_) => const NavScreenView());
       default:
         return undefinedRoute();
     }

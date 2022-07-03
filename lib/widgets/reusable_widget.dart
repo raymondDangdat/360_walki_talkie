@@ -9,7 +9,8 @@ class WalkieButton extends StatelessWidget {
    BuildContext context;
    VoidCallback onTap;
    String title;
-   WalkieButton({Key? key, required this.context, required this.onTap, required this.title}) : super(key: key);
+   WalkieButton({Key? key, required this.context,
+     required this.onTap, required this.title}) : super(key: key);
 
    @override
    Widget build(BuildContext context) {
@@ -35,7 +36,8 @@ class WalkieButton extends StatelessWidget {
 
          ),
          alignment: Alignment.center,
-         child: CustomText(text: title, textColor: const Color.fromRGBO(7, 7, 7, 1), fontSize: FontSize.s26,),
+         child: CustomText(text: title,
+           textColor: const Color.fromRGBO(7, 7, 7, 1), fontSize: FontSize.s26,),
 
        ),
      );
@@ -71,7 +73,8 @@ class WalkieButtonBordered extends StatelessWidget {
 
         ),
         alignment: Alignment.center,
-        child: CustomText(text: title, textColor: textColor, fontSize: FontSize.s26,),
+        child: CustomText(text: title, textColor: textColor,
+          fontSize: FontSize.s26,),
 
       ),
     );
