@@ -5,6 +5,7 @@ class ColorManager {
   static Color textColor = const Color.fromRGBO(255, 213, 79, 1);
   static Color orangeColor = const Color.fromRGBO(255, 132, 43, 1);
   static Color deepOrange = const Color.fromRGBO(255, 132, 43, 1);
+  static Color darkTextColor = const Color.fromRGBO(7, 7, 7, 1);
 
 
   static Color primaryColor = const Color.fromRGBO(255, 213, 79, 1);
