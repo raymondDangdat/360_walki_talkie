@@ -6,10 +6,10 @@ import '../resources/value_manager.dart';
 import 'custom_text.dart';
 
 class WalkieButton extends StatelessWidget {
-   BuildContext context;
-   VoidCallback onTap;
-   String title;
-   WalkieButton({Key? key, required this.context,
+   final BuildContext context;
+   final VoidCallback onTap;
+   final String title;
+   const WalkieButton({Key? key, required this.context,
      required this.onTap, required this.title}) : super(key: key);
 
    @override
@@ -45,12 +45,12 @@ class WalkieButton extends StatelessWidget {
  }
 
 class WalkieButtonBordered extends StatelessWidget {
-  BuildContext context;
-  VoidCallback onTap;
-  String title;
-  Color borderColor;
-  Color textColor;
-  WalkieButtonBordered({Key? key,
+  final BuildContext context;
+  final VoidCallback onTap;
+  final String title;
+  final Color borderColor;
+  final Color textColor;
+  const WalkieButtonBordered({Key? key,
     required this.context,
     required this.onTap,
     required this.title,
@@ -83,5 +83,40 @@ class WalkieButtonBordered extends StatelessWidget {
 
 
 }
+
+
+
+class DropdownButtonText extends StatelessWidget {
+  final String text;
+  const DropdownButtonText({Key? key, required this.text}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: AppSize.s250.w,
+      child: CustomTextNoOverFlow(
+        text: text, textColor: ColorManager.textColor, fontWeight: FontWeightManager.regular, fontSize: FontSize.s14,
+
+      ),
+    );
+  }
+}
+
+
+class DropdownButtonHint extends StatelessWidget {
+  final String hint;
+  const DropdownButtonHint({Key? key, required this.hint}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomText(
+      text: hint,
+      textColor: ColorManager.textColor,
+      fontSize: FontSize.s14,
+      // lineHeight: 1.571,
+    );
+  }
+}
+
 
 

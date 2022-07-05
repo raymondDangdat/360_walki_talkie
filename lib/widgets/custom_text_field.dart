@@ -10,11 +10,13 @@ class CustomTextField extends StatelessWidget {
       int? maxLines;
   String hint;
       String? labelText;
+      TextEditingController? controller;
         CustomTextField({Key? key, this.autoFocus = false,
     this.obSecureText = false,
     this.labelText = "",
     this.hint = "",
-          this.maxLines = 1
+          this.maxLines = 1,
+          this.controller
   }) : super(key: key);
 
   @override

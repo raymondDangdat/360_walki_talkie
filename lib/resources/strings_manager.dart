@@ -35,6 +35,11 @@ class AppStrings {
   static const String userName = "Dangdat Raymond";
   static const String noRouteFound = "Oops Route not found";
   static const createAccount = "create account";
+  static const enterChannelName = "enter channel name";
+  static const channelDescription = "channel description";
+  static const channelPassword = "channel password";
+  static const chooseLanguage = "choose language";
+  static const ifYouKnowTheChannelName = "If you know the channel you want join. Simply add it in the  text field above.";
 
 
 

@@ -14,19 +14,26 @@ class NavScreensHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(width: AppSize.s21.w,),
-        Image.asset(AppImages.three60Small),
-        SizedBox(width: AppSize.s7.w,),
-        Expanded(child: CustomTextWithLineHeight(text: AppStrings.userName,
-          textColor: ColorManager.blackTextColor,
-          fontWeight: FontWeight.w300,
-          fontSize: FontSize.s20,),),
-        
-        SvgPicture.asset(AppImages.menuIcon),
-        SizedBox(width: AppSize.s21.w,),
-      ],
+    return Container(
+      height: AppSize.s54.h,
+      decoration: const BoxDecoration(
+          image: DecorationImage(image: AssetImage(AppImages.headerBgImage), fit: BoxFit.cover)
+      ),
+      alignment: Alignment.center,
+      child: Row(
+        children: [
+          SizedBox(width: AppSize.s21.w,),
+          Image.asset(AppImages.three60Small),
+          SizedBox(width: AppSize.s7.w,),
+          Expanded(child: CustomTextWithLineHeight(text: AppStrings.userName,
+            textColor: ColorManager.blackTextColor,
+            fontWeight: FontWeight.w300,
+            fontSize: FontSize.s20,),),
+
+          SvgPicture.asset(AppImages.menuIcon),
+          SizedBox(width: AppSize.s21.w,),
+        ],
+      ),
     );
   }
 }

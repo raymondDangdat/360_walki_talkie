@@ -18,3 +18,15 @@ void openChannelTypeScreen(BuildContext context) async{
 void openNavScreen(BuildContext context) async{
   Navigator.pushReplacementNamed(context, Routes.navScreenView);
 }
+
+void openAddChannelByName(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.addByChannelName);
+}
+
+void openCreateBrandNewChannel(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.createBrandNewChannel);
+}
+
+void openGenerateChannelQrCode(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.generateChannelQrCode);
+}

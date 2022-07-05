@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:walkie_talkie_360/resources/strings_manager.dart';
+import 'package:walkie_talkie_360/views/add_channel_by_name/add_channel_by_name.dart';
 import 'package:walkie_talkie_360/views/channels_type_view/channel_types_view.dart';
+import 'package:walkie_talkie_360/views/create_brand_new_channel/create_brand_new_channel.dart';
+import 'package:walkie_talkie_360/views/generate_channel_qr_code/generate_channel_qr_code.dart';
 import 'package:walkie_talkie_360/views/nav_screen/nav_screen_view.dart';
 
 import '../views/create_account_view/create_account_view.dart';
@@ -15,6 +18,9 @@ class Routes {
   static const String getStartedScreen = "/get_started_screen";
   static const String channelTypes = "/channel_types";
   static const navScreenView = "/nav_screen";
+  static const addByChannelName = "/add_by_channel_name";
+  static const createBrandNewChannel = "/create_brand_new_channel";
+  static const generateChannelQrCode = "/generate_qr_code";
 
 }
 
@@ -31,6 +37,12 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const ChannelTypesView());
       case Routes.navScreenView:
         return MaterialPageRoute(builder: (_) => const NavScreenView());
+      case Routes.addByChannelName:
+        return MaterialPageRoute(builder: (_) => const AddChannelByName());
+      case Routes.createBrandNewChannel:
+        return MaterialPageRoute(builder: (_) => const CreateBrandNewChannel());
+      case Routes.generateChannelQrCode:
+        return MaterialPageRoute(builder: (_) => const GenerateChannelQrCode());
       default:
         return undefinedRoute();
     }

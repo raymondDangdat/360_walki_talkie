@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/nav_screens_header.dart';
 
 import '../../../resources/color_manager.dart';
@@ -67,6 +68,7 @@ class ChannelView extends StatelessWidget {
                       TextSpan(
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
+                            openAddChannelByName(context);
                             },
                           text: AppStrings.clickToContinue, style: TextStyle(fontWeight: FontWeight.w300, color: ColorManager.whiteColor)),
                     ],
@@ -105,6 +107,7 @@ class ChannelView extends StatelessWidget {
                       TextSpan(
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
+                            openCreateBrandNewChannel(context);
                             },
                           text: AppStrings.clickToContinue, style: TextStyle(fontWeight: FontWeight.w300, color: ColorManager.whiteColor)),
                     ],
@@ -143,6 +146,7 @@ class ChannelView extends StatelessWidget {
                       TextSpan(
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
+                            openGenerateChannelQrCode(context);
                             },
                           text: AppStrings.clickToGenerate, style: TextStyle(fontWeight: FontWeight.w300, color: ColorManager.whiteColor)),
                     ],

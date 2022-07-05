@@ -19,5 +19,6 @@ class AppImages {
   static const channelIcon = "assets/images/icons/channel_icon.svg";
   static const menuIcon = "assets/images/icons/menu-mobile.svg";
   static const createChannelOptionsBg = "assets/images/create_channel_options.png";
+  static const headerBgImage = "assets/images/header_bg.png";
 
 }
