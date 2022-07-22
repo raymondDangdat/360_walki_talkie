@@ -19,6 +19,7 @@ class AppStrings {
   static const phoneNumber = "phone number";
   static const createChannel = "create channel";
   static const createAChannel = "create a channel";
+  static const createQrCode = "create qr code";
   static const createNewChannel = "create new channel";
   static const youCanCreateABrandNewChannel = "you can create a brand new channel for you and your team. you can set password.";
   static const corporateChannel = "corporate channel";
@@ -29,17 +30,40 @@ class AppStrings {
   static const addAChannelByName = "add a channel by name";
   static const ifYouKnow = "If your know the channel you want join. Simply add it here. ";
   static const clickToContinue = "click to continue.";
-  static const generateChannelQrCode = "generate channel qr code";
+  static const generateChannelQrCode = "Generate Channel QR Code Here";
   static const youCanGenerate = "you can generate qr code for each channel you create. ";
   static const clickToGenerate = " click to generate.";
-  static const String userName = "Dangdat Raymond";
-  static const String noRouteFound = "Oops Route not found";
+  static const youCanCreateAs = "you can create as many QR Code for as many channel as you like";
+  static const userName = "Dangdat Raymond";
+  static const enterYourEmail = "enter your email";
+  static const submit = "submit";
+  static const forgotPassword = "forgot password? click ";
+  static const here = "here ";
+  static const recoverIt = " recover it ";
+  static const iRememberMyUsername  = "i remember my username and password. I will just ";
+  static const login = "login.";
+  static const channelCreated = "channels created";
+  static const channelsConnectedTo = "channels connected to";
+  static const messageReceived = "message received";
+  static const chatMessage = "chat message";
+  static const noRouteFound = "Oops Route not found";
   static const createAccount = "create account";
+  static const loginToAccount = "login to account";
   static const enterChannelName = "enter channel name";
   static const channelDescription = "channel description";
   static const channelPassword = "channel password";
   static const chooseLanguage = "choose language";
   static const ifYouKnowTheChannelName = "If you know the channel you want join. Simply add it in the  text field above.";
+  static const channelType = "select channel type";
+  static const chooseCategory = "choose category";
+  static const imageStatus = "image status";
+  static const chooseChannelHere = "choose channel here";
+  static const allowLocationSharing = "allow location sharing";
+  static const allowUserToTalkToAdmin = "allow user to talk to admin";
+  static const moderatorCanInterruptMessages = "moderator can interrupt messages";
+  static const userNameTaken = "Username already taken";
+  static const allFieldsAreRequired = "All fields are required";
+  static const enterValidEmailAndPassword = "Enter valid email and password";
 
 
 

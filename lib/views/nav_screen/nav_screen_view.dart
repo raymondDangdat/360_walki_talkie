@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:walkie_talkie_360/views/nav_screen/channel/channel_view.dart';
 import 'package:walkie_talkie_360/views/nav_screen/chats/chat_view.dart';
@@ -8,7 +7,6 @@ import 'package:walkie_talkie_360/views/nav_screen/message/message_view.dart';
 
 import '../../resources/color_manager.dart';
 import '../../resources/image_manager.dart';
-import '../../resources/value_manager.dart';
 
 class NavScreenView extends StatefulWidget {
   const NavScreenView({Key? key}) : super(key: key);

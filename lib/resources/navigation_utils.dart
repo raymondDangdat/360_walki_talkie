@@ -30,3 +30,13 @@ void openCreateBrandNewChannel(BuildContext context) async{
 void openGenerateChannelQrCode(BuildContext context) async{
   Navigator.pushNamed(context, Routes.generateChannelQrCode);
 }
+
+void openFixPasswordScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.fixPasswordScreen);
+}
+
+void openLoginScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.loginScreen);
+}
+
+

@@ -132,7 +132,7 @@ class ChannelView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomTextWithLineHeight(text: AppStrings.generateChannelQrCode, textColor: ColorManager.darkTextColor, fontSize: FontSize.s26,),
+              CustomTextWithLineHeight(text: AppStrings.generateChannelQrCode, textColor: ColorManager.darkTextColor,),
               SizedBox(height: AppSize.s4.h,),
               SizedBox(
                 width: AppSize.s364.w,

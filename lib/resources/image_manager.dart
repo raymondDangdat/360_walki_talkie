@@ -20,5 +20,15 @@ class AppImages {
   static const menuIcon = "assets/images/icons/menu-mobile.svg";
   static const createChannelOptionsBg = "assets/images/create_channel_options.png";
   static const headerBgImage = "assets/images/header_bg.png";
+  static const dropdownIcon = "assets/images/icons/dropdown_icon.svg";
+  static const unCheckedBox = "assets/images/icons/un_checked.svg";
+  static const checked = "assets/images/icons/checked.svg";
+  static const walkieLeft = "assets/images/walki_left_.png";
+  static const dashboardStats = "assets/images/dashboard_bg.png";
+  static const wkt = "assets/images/wkt.png";
+  static const tapToTalk = "assets/images/tap_to _speak.svg";
+  static const speaker = "assets/images/speaker.svg";
+  static const option = "assets/images/option.svg";
+
 
 }

@@ -5,15 +5,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../resources/color_manager.dart';
 import '../resources/font_manager.dart';
 import '../resources/image_manager.dart';
-import '../resources/strings_manager.dart';
 import '../resources/value_manager.dart';
 import 'custom_text.dart';
+
+import 'package:provider/provider.dart';
+import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 
 class NavScreensHeader extends StatelessWidget {
   const NavScreensHeader({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     return Container(
       height: AppSize.s54.h,
       decoration: const BoxDecoration(
@@ -25,7 +28,7 @@ class NavScreensHeader extends StatelessWidget {
           SizedBox(width: AppSize.s21.w,),
           Image.asset(AppImages.three60Small),
           SizedBox(width: AppSize.s7.w,),
-          Expanded(child: CustomTextWithLineHeight(text: AppStrings.userName,
+          Expanded(child: CustomTextWithLineHeight(text: authProvider.userInfo.fullName,
             textColor: ColorManager.blackTextColor,
             fontWeight: FontWeight.w300,
             fontSize: FontSize.s20,),),

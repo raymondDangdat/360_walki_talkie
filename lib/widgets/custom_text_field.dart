@@ -5,17 +5,21 @@ import 'package:walkie_talkie_360/resources/font_manager.dart';
 import '../resources/color_manager.dart';
 
 class CustomTextField extends StatelessWidget {
-      bool autoFocus;
-  bool obSecureText;
-      int? maxLines;
-  String hint;
-      String? labelText;
-      TextEditingController? controller;
-        CustomTextField({Key? key, this.autoFocus = false,
-    this.obSecureText = false,
-    this.labelText = "",
-    this.hint = "",
-          this.maxLines = 1,
+      final bool autoFocus;
+      final bool obSecureText;
+      final int? maxLines;
+      final int maxLength;
+      final String hint;
+      final String? labelText;
+      final TextEditingController? controller;
+       const CustomTextField({
+         Key? key,
+         this.autoFocus = false,
+         this.obSecureText = false,
+         this.labelText = "",
+         this.hint = "",
+         this.maxLines = 1,
+         this.maxLength = 1000,
           this.controller
   }) : super(key: key);
 
@@ -30,9 +34,11 @@ class CustomTextField extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: TextFormField(
+              controller: controller,
               cursorColor: ColorManager.textColor,
               autofocus: autoFocus,
               maxLines: maxLines,
+              maxLength: maxLength,
               obscureText:  obSecureText,
               style: TextStyle(
                 color: ColorManager.textColor,
@@ -43,6 +49,7 @@ class CustomTextField extends StatelessWidget {
                 fillColor: ColorManager.bgColor,
                 hintText: hint,
                 labelText: labelText,
+                counterText: "",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5.r),
                   borderSide: BorderSide(color: ColorManager.textColor,

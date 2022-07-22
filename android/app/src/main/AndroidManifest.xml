@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.walkie_talkie_360">
+    package="com.walkie_talkie_360">
    <application
         android:label="walkie_talkie_360"
         android:name="${applicationName}"

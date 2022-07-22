@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/resources/color_manager.dart';
-import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/channel_types_widget.dart';
 
+import '../../provider/authentication_provider.dart';
 import '../../resources/font_manager.dart';
 import '../../resources/image_manager.dart';
 import '../../resources/strings_manager.dart';
@@ -16,9 +17,9 @@ class ChannelTypesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
-
       body: SafeArea(
           child: Scaffold(
             backgroundColor: ColorManager.bgColor,
@@ -39,7 +40,7 @@ class ChannelTypesView extends StatelessWidget {
                         children: [
                           Image.asset(AppImages.three60Small),
                           SizedBox(width: AppSize.s7.w,),
-                          CustomTextWithLineHeight(text: AppStrings.userName,
+                          CustomTextWithLineHeight(text: authProvider.userInfo.fullName,
                             textColor: ColorManager.blackTextColor,
                             fontWeight: FontWeight.w300,
                             fontSize: FontSize.s20,),

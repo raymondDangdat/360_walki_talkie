@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "157164303880",
+    "project_id": "walkie-talkie-d789d",
+    "storage_bucket": "walkie-talkie-d789d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157164303880:android:1f437009265052b30483bd",
+        "android_client_info": {
+          "package_name": "com.walkie_talkie_360"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "157164303880-0cireecv71rc42r2u6pdblgahffqobv3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.walkie_talkie_360",
+            "certificate_hash": "fc7ef1c4a0bbe1bb2b4e878074ff6894cfe0cca7"
+          }
+        },
+        {
+          "client_id": "157164303880-fvtum4mev2h4tbkhet06046772j1h75d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm7U_FDlMlqtyIEG9jJkdHW8ObEKpmIR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "157164303880-fvtum4mev2h4tbkhet06046772j1h75d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "157164303880-38r27d59jab2u3tmbdd2betip933sb3c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.walkieTalkie360"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

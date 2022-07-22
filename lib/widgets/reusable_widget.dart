@@ -88,12 +88,13 @@ class WalkieButtonBordered extends StatelessWidget {
 
 class DropdownButtonText extends StatelessWidget {
   final String text;
-  const DropdownButtonText({Key? key, required this.text}) : super(key: key);
+  final double width;
+  const DropdownButtonText({Key? key, required this.text, this.width = 250.0}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: AppSize.s250.w,
+      width: width.w,
       child: CustomTextNoOverFlow(
         text: text, textColor: ColorManager.textColor, fontWeight: FontWeightManager.regular, fontSize: FontSize.s14,
 

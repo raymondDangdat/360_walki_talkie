@@ -42,6 +42,20 @@ dependencies:
   flutter_screenutil: ^5.3.1
   dropdown_button2: ^1.2.2
 
+  change_app_package_name: ^1.1.0
+  cloud_firestore: ^3.3.0
+  firebase_auth: ^3.4.2
+  firebase_storage: ^10.3.2
+  firebase_core: ^1.19.2
+  image_picker: ^0.8.5+3
+  cached_network_image: ^3.2.0
+
+  top_snackbar_flutter: ^2.0.0
+
+  random_string: ^2.3.1
+
+  provider: ^6.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

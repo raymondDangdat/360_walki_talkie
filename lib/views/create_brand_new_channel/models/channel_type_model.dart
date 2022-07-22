@@ -10,5 +10,4 @@ List<ChannelTypeModel> channelTypes = [
   ChannelTypeModel(channelId: "2", channelType: "close circle(Only approved users can talk, any one else can listen)"),
   ChannelTypeModel(channelId: "3", channelType: "semi close circle (only approved users can talk and listen)"),
   ChannelTypeModel(channelId: "4", channelType: "close corridor (only moderators can talk, anyone can only listen)"),
-
 ];
