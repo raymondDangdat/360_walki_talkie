@@ -14,3 +14,29 @@ void openGetStartedScreen(BuildContext context) async{
 void openChannelTypeScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.channelTypes);
 }
+
+void openNavScreen(BuildContext context) async{
+  Navigator.pushReplacementNamed(context, Routes.navScreenView);
+}
+
+void openAddChannelByName(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.addByChannelName);
+}
+
+void openCreateBrandNewChannel(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.createBrandNewChannel);
+}
+
+void openGenerateChannelQrCode(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.generateChannelQrCode);
+}
+
+void openFixPasswordScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.fixPasswordScreen);
+}
+
+void openLoginScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.loginScreen);
+}
+
+

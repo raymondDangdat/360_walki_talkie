@@ -60,7 +60,7 @@ class PageViewOnBoarding extends StatelessWidget {
       width: double.infinity,
       child: Column(
         children: [
-          SizedBox(height: AppSize.s119.h,),
+          SizedBox(height: AppSize.s50.h,),
           CustomTextWithLineHeight(text: AppStrings.welcomeTo,
             textColor: ColorManager.whiteColor,),
           SizedBox(height: AppSize.s52.h,),
@@ -199,7 +199,9 @@ class PageViewOnBoarding extends StatelessWidget {
 
               SizedBox(height: AppSize.s17.h,),
 
-              WalkieButtonBordered(context: context, onTap: (){},
+              WalkieButtonBordered(context: context, onTap: (){
+                openLoginScreen(context);
+              },
                 title: AppStrings.howItWorks, textColor: ColorManager.textColor,
                 borderColor: ColorManager.textColor,),
 
