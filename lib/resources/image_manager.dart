@@ -39,6 +39,7 @@ class AppImages {
   static const smileSmall = "assets/images/smile_small.png";
   static const smileBig = "assets/images/smile_big.png";
   static const messageCircle = "assets/images/message-circle.png";
+  static const buttonCreateAccount = "assets/images/button_create_account.png";
 
 
 

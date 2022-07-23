@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -25,6 +28,23 @@ class CreateAccountView extends StatefulWidget {
 }
 
 class _CreateAccountViewState extends State<CreateAccountView> {
+  final ImagePicker _picker = ImagePicker();
+
+  File? file;
+  XFile? xFile;
+
+
+  handleChooseFromGallery(BuildContext context) async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.gallery,
+    );
+    setState(() {
+      xFile = file;
+      this.file = File(file!.path);
+    });
+
+  }
+
   final fullNameController = TextEditingController();
   final userNameController = TextEditingController();
   final passwordController = TextEditingController();
@@ -33,6 +53,8 @@ class _CreateAccountViewState extends State<CreateAccountView> {
 
   bool userNameTaken = false;
   bool isSearching = false;
+
+
 
 
   @override
@@ -190,6 +212,64 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                 maxLength: 11,
                               ),
 
+                              SizedBox(height: AppSize.s9.h,),
+
+                              Container(
+                                height: AppSize.s51.h,
+                                width: double.infinity,
+                                padding: EdgeInsets.only(
+                                  left: AppSize.s12.r
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius:
+                                  BorderRadius.circular(AppSize.s10.r),
+                                  border: Border.all(
+                                    color: ColorManager.primaryColor
+                                  )
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: AppSize.s100.w,
+                                      child: CustomText(
+                                          text: file == null ?
+                                          AppStrings.noFileHere :
+                                          file!.path.toString().substring(file!.path.toString().length -10),
+                                        textColor: ColorManager.primaryColor,
+                                        fontSize: FontSize.s16,
+                                      ),
+                                    ),
+
+                                    SizedBox(width: AppSize.s10.w,),
+
+                                    Expanded(child: InkWell(
+                                      onTap: (){
+                                        handleChooseFromGallery(context);
+                                      },
+                                      child: Container(
+                                        height: AppSize.s51.h,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(AppSize.s10.r),
+                                          image: const DecorationImage(
+                                              image: AssetImage(AppImages.buttonCreateAccount), fit: BoxFit.cover)
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: CustomTextWithLineHeight(
+                                          text: file == null? AppStrings.chooseFile : AppStrings.changeFIle,
+                                          textColor: ColorManager.blckTxtColor,
+                                          fontSize: FontSize.s14,),
+                                      ),
+                                    ))
+
+                                  ],
+                                ),
+                              ),
+
+                              CustomTextWithLineHeight(
+                                  text: AppStrings.uploadYourPassport,
+                                textColor: ColorManager.primaryColor,
+                                fontSize: FontSize.s14,),
+
                               SizedBox(height: AppSize.s17.h,),
 
                               SizedBox(
@@ -272,6 +352,15 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                           ColorManager.primaryColor,
                                         ),
                                       );
+                                    }else if(file == null){
+                                      showTopSnackBar(
+                                        context,
+                                        CustomSnackBar.error(
+                                          message: AppStrings.avatarRequired,
+                                          backgroundColor:
+                                          ColorManager.primaryColor,
+                                        ),
+                                      );
                                     }else{
                                       final user = await
                                       auth.createUserWithEmailAndPassword(
@@ -281,7 +370,10 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                           fullName: fullNameController.text,
                                           userName:
                                           userNameController.text.toLowerCase(),
-                                          phoneNumber: phoneNumberController.text);
+                                          phoneNumber:
+                                          phoneNumberController.text,
+                                        file: file!
+                                      );
 
                                       if(user != null){
                                         openLoginScreen(context);

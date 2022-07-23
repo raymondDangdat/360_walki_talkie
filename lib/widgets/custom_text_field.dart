@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
 
 import '../resources/color_manager.dart';
+import '../resources/value_manager.dart';
 
 class CustomTextField extends StatelessWidget {
       final bool autoFocus;
@@ -29,7 +30,7 @@ class CustomTextField extends StatelessWidget {
       children: [
         Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5.r),
+              borderRadius: BorderRadius.circular(AppSize.s10.r),
               color: ColorManager.textFilledColor,
             ),
             alignment: Alignment.center,
@@ -51,18 +52,18 @@ class CustomTextField extends StatelessWidget {
                 labelText: labelText,
                 counterText: "",
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5.r),
+                  borderRadius: BorderRadius.circular(AppSize.s10.r),
                   borderSide: BorderSide(color: ColorManager.textColor,
                       width: 1),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(5.r),
+                  borderRadius: BorderRadius.circular(AppSize.s10.r),
                   borderSide: BorderSide(color: ColorManager.textColor,
                       width: 1),
                 ),
                 focusedBorder: OutlineInputBorder(
                   gapPadding: 0.0,
-                  borderRadius: BorderRadius.circular(5.r),
+                  borderRadius: BorderRadius.circular(AppSize.s10.r),
                   borderSide: BorderSide(color: ColorManager.textColor,
                       width: 1),
                 ),
