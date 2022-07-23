@@ -43,4 +43,8 @@ void openHowItWorksScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.howItWorksScreen);
 }
 
+void openChannelMembersChats(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.channelMembersChats);
+}
+
 
