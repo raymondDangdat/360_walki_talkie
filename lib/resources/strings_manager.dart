@@ -64,6 +64,13 @@ class AppStrings {
   static const userNameTaken = "Username already taken";
   static const allFieldsAreRequired = "All fields are required";
   static const enterValidEmailAndPassword = "Enter valid email and password";
+  static const thisIsAGuide = "This is a guide on how to use the 360  push to talk app. Its simple, simply push to talk or chat. ";
+  static const signUpTo360 = "Sign up to 360  by filling all the required information.";
+  static const createASupperChannel = "Create a super channel, that    reflect your purpose.";
+  static const onBoardChannelUsers = "Onboard channel users from your contact. You can also create sub-channel and onboard sub-channel users from your contact. ";
+  static const onBoardedChannelUsersCanAlso = "Onboarded channel users can also chat within the channel they belong. Likewise users who belong to the sub-channel. ";
+  static const youCanBeginToPush = "You can begin to push to talk to members of your channel.";
+
 
 
 

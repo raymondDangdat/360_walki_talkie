@@ -29,6 +29,17 @@ class AppImages {
   static const tapToTalk = "assets/images/tap_to _speak.svg";
   static const speaker = "assets/images/speaker.svg";
   static const option = "assets/images/option.svg";
+  static const howItWorksTalkie = "assets/images/how_it_works_walkie.png";
+  static const howItWorksTalkieSmall = "assets/images/walkie_how_it_works_small.png";
+  static const backButtonBg = "assets/images/back_button_bg.png";
+  static const arrowLeft = "assets/images/arrow-left.png";
+  static const how360Works = "assets/images/how_360_works.png";
+  static const smileFace = "assets/images/smile.png";
+  static const loader = "assets/images/loader.png";
+  static const smileSmall = "assets/images/smile_small.png";
+  static const smileBig = "assets/images/smile_big.png";
+  static const messageCircle = "assets/images/message-circle.png";
+
 
 
 }
