@@ -42,15 +42,4 @@ class ChannelModel {
     );
 
   }
-
-
-
-
-
-// Map toMap() {
-//   var map = Map<String, dynamic>();
-//   map['subject'] = subject;
-//   map['id'] = id;
-//   return map;
-// }
 }

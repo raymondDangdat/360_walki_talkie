@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
+import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/color_manager.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
 import 'package:walkie_talkie_360/resources/image_manager.dart';
@@ -19,6 +20,7 @@ class ChatView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
+    final channelProvider = context.watch<ChannelProvider>();
     return SafeArea(
       child: Column(
         children: [
@@ -123,6 +125,8 @@ class ChatView extends StatelessWidget {
                           final channel = authProvider.userChannelsCreated[index];
                           return InkWell(
                             onTap: (){
+
+                              channelProvider.getChannelMembers(channel.channelId);
                             },
                             child: Padding(
                               padding: EdgeInsets.only(bottom: AppSize.s3.h),

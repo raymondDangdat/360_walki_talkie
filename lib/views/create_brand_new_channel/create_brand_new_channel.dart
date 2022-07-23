@@ -1,16 +1,19 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/image_manager.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/image_status_model.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
 import '../../resources/color_manager.dart';
+import '../../resources/navigation_utils.dart';
 import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
@@ -40,6 +43,7 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
       body: SafeArea(child: Column(
@@ -49,7 +53,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
           Container(
             height: AppSize.s54.h,
             decoration: const BoxDecoration(
-              image: DecorationImage(image: AssetImage(AppImages.headerBgImage), fit: BoxFit.cover)
+              image: DecorationImage(
+                  image: AssetImage(AppImages.headerBgImage), fit: BoxFit.cover)
             ),
             alignment: Alignment.center,
             child: const NavScreensHeader(),
@@ -62,7 +67,9 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
 
                 SizedBox(height: AppSize.s28.h,),
 
-                CustomTextWithLineHeight(text: AppStrings.createAChannel, textColor: ColorManager.textColor,),
+                CustomTextWithLineHeight(
+                  text: AppStrings.createAChannel,
+                  textColor: ColorManager.textColor,),
                 SizedBox(height: AppSize.s19.h,),
 
                 Padding(padding: EdgeInsets.symmetric(horizontal: AppSize.s25.w),
@@ -85,7 +92,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   hint: Row(
                                     children: const [
                                       Expanded(
-                                          child: DropdownButtonHint(hint: AppStrings.channelType,)),
+                                          child: DropdownButtonHint(
+                                            hint: AppStrings.channelType,)),
                                     ],
                                   ),
                                   items: channelTypes
@@ -95,7 +103,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                         mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                         children: [
-                                          DropdownButtonText(text: item.channelType),
+                                          DropdownButtonText(
+                                              text: item.channelType),
                                         ],
                                       )))
                                       .toList(),
@@ -163,7 +172,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   hint: Row(
                                     children: const [
                                       Expanded(
-                                          child: DropdownButtonHint(hint: AppStrings.chooseCategory,)),
+                                          child: DropdownButtonHint(
+                                            hint: AppStrings.chooseCategory,)),
                                     ],
                                   ),
                                   items: categories
@@ -225,7 +235,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   hint: Row(
                                     children: const [
                                       Expanded(
-                                          child: DropdownButtonHint(hint: AppStrings.imageStatus,)),
+                                          child: DropdownButtonHint(
+                                            hint: AppStrings.imageStatus,)),
                                     ],
                                   ),
                                   items: imageStatuses
@@ -281,7 +292,9 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomTextWithLineHeight(text: AppStrings.allowLocationSharing, textColor: ColorManager.textColor,),
+                          CustomTextWithLineHeight(
+                            text: AppStrings.allowLocationSharing,
+                            textColor: ColorManager.textColor,),
 
                           InkWell(
                               onTap: (){
@@ -289,7 +302,9 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   allowLocationSharing = !allowLocationSharing;
                                 });
                               },
-                              child: SvgPicture.asset(allowLocationSharing ? AppImages.checked : AppImages.unCheckedBox)),
+                              child: SvgPicture.asset(
+                                  allowLocationSharing ?
+                                  AppImages.checked : AppImages.unCheckedBox)),
                         ],
                       ),
 
@@ -298,7 +313,9 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomTextWithLineHeight(text: AppStrings.allowUserToTalkToAdmin, textColor: ColorManager.textColor,),
+                          CustomTextWithLineHeight(
+                            text: AppStrings.allowUserToTalkToAdmin,
+                            textColor: ColorManager.textColor,),
 
                           InkWell(
                               onTap: (){
@@ -306,7 +323,8 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   allowUserTalkToAdmin = !allowUserTalkToAdmin;
                                 });
                               },
-                              child: SvgPicture.asset(allowUserTalkToAdmin ? AppImages.checked : AppImages.unCheckedBox)),
+                              child: SvgPicture.asset(allowUserTalkToAdmin ?
+                              AppImages.checked : AppImages.unCheckedBox)),
                         ],
                       ),
 
@@ -315,7 +333,9 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomTextWithLineHeight(text: AppStrings.moderatorCanInterruptMessages, textColor: ColorManager.textColor,),
+                          CustomTextWithLineHeight(
+                            text: AppStrings.moderatorCanInterruptMessages,
+                            textColor: ColorManager.textColor,),
 
                           InkWell(
                               onTap: (){
@@ -323,12 +343,11 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   moderatorCanInterrupt = !moderatorCanInterrupt;
                                 });
                               },
-                              child: SvgPicture.asset(moderatorCanInterrupt ? AppImages.checked : AppImages.unCheckedBox)),
+                              child: SvgPicture.asset(moderatorCanInterrupt ?
+                              AppImages.checked : AppImages.unCheckedBox)),
                         ],
                       ),
-
                       SizedBox(height: AppSize.s30.h,),
-
                       Consumer<ChannelProvider>(
                           builder: (ctx, channelProvider, child) {
                           WidgetsBinding.instance?.
@@ -342,13 +361,12 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                   ColorManager.primaryColor,
                                 ),
                               );
-
                               ///Clear the response message to avoid duplicate
                               channelProvider.clear();
                             }
                           });
-                          return WalkieButton(context: context, onTap: (){
-                            channelProvider.createChannel(
+                          return WalkieButton(context: context, onTap: ()async{
+                            final isCreated = await channelProvider.createChannel(
                                 context, channelNameController.text.trim(),
                                 selectedChannelType!.channelType,
                                 channelPasswordController.text.trim(),
@@ -356,23 +374,21 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                                 selectedCategory!.categoryTitle,
                                 selectedImageStatus!.slug,
                                 allowLocationSharing, allowUserTalkToAdmin,
-                                moderatorCanInterrupt);
+                                moderatorCanInterrupt, authProvider);
+                            if(isCreated){
+                              authProvider.getUserChannels(
+                                  FirebaseAuth.instance.currentUser!.uid);
+                              openNavScreen(context);
+                            }
                           }, title: AppStrings.createChannel);
                         }
                       ),
-
                       SizedBox(height: AppSize.s20.h,)
-
                     ],
                   ),)
               ],
             ),
           ))
-
-
-
-
-
         ],
       )),
     );
