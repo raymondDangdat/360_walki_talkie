@@ -200,7 +200,8 @@ class PageViewOnBoarding extends StatelessWidget {
               SizedBox(height: AppSize.s17.h,),
 
               WalkieButtonBordered(context: context, onTap: (){
-                openLoginScreen(context);
+                openHowItWorksScreen(context);
+                // openLoginScreen(context);
               },
                 title: AppStrings.howItWorks, textColor: ColorManager.textColor,
                 borderColor: ColorManager.textColor,),

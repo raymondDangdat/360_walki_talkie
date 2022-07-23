@@ -5,6 +5,7 @@ import 'package:walkie_talkie_360/views/channels_type_view/channel_types_view.da
 import 'package:walkie_talkie_360/views/create_brand_new_channel/create_brand_new_channel.dart';
 import 'package:walkie_talkie_360/views/fix_password_screen/fix_password_screen.dart';
 import 'package:walkie_talkie_360/views/generate_channel_qr_code/generate_channel_qr_code.dart';
+import 'package:walkie_talkie_360/views/how_it_works/how_it_works_screen.dart';
 import 'package:walkie_talkie_360/views/nav_screen/nav_screen_view.dart';
 
 import '../views/create_account_view/create_account_view.dart';
@@ -25,6 +26,7 @@ class Routes {
   static const generateChannelQrCode = "/generate_qr_code";
   static const loginScreen = "/login_screen";
   static const fixPasswordScreen = "/fix_password_screen";
+  static const howItWorksScreen = "/how_it_works";
 
 }
 
@@ -51,6 +53,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case Routes.fixPasswordScreen:
         return MaterialPageRoute(builder: (_) => const FixPasswordScreen());
+      case Routes.howItWorksScreen:
+        return MaterialPageRoute(builder: (_) => const HowItWorks());
       default:
         return undefinedRoute();
     }

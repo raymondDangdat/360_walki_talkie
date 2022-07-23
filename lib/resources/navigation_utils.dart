@@ -39,4 +39,8 @@ void openLoginScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.loginScreen);
 }
 
+void openHowItWorksScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.howItWorksScreen);
+}
+
 
