@@ -6,6 +6,7 @@ class LocalUserModel {
   final String phoneNumber;
   final String email;
   final String userName;
+  final String userProfileUrl;
 
   LocalUserModel({
     required this.userID,
@@ -13,6 +14,7 @@ class LocalUserModel {
     required this.phoneNumber,
     required this.email,
     required this.userName,
+    required this.userProfileUrl,
 
   });
 
@@ -24,6 +26,7 @@ class LocalUserModel {
       phoneNumber : doc['phoneNumber'] ?? '',
       email: doc['email'] ?? '',
       userName: doc['userName'] ?? '',
+      userProfileUrl: doc.data().toString().contains("userProfileUrl") ? doc.get("userProfileUrl") : "",
     );
   }
 }

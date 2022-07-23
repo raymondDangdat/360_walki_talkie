@@ -70,6 +70,11 @@ class AppStrings {
   static const onBoardChannelUsers = "Onboard channel users from your contact. You can also create sub-channel and onboard sub-channel users from your contact. ";
   static const onBoardedChannelUsersCanAlso = "Onboarded channel users can also chat within the channel they belong. Likewise users who belong to the sub-channel. ";
   static const youCanBeginToPush = "You can begin to push to talk to members of your channel.";
+  static const noFileHere = "no file here";
+  static const uploadYourPassport = "upload your passport or image avatar";
+  static const chooseFile = "choose file";
+  static const changeFIle = "change image";
+  static const avatarRequired = "Avatar is required";
 
 
 

@@ -12,6 +12,7 @@ class ColorManager {
   static Color textFilledColor = HexColor.fromHex("#EEF6FC");
   static Color blackTextColor = const Color.fromRGBO(14, 16, 18, 1);
   static Color disabledButtonColor = const Color.fromRGBO(232, 235, 237, 1);
+  static const blckTxtColor = Color.fromRGBO(0, 0, 0, 1);
 
   static Color lightTextColor = HexColor.fromHex("#657B9A");
   static Color whiteColor = HexColor.fromHex("#FFFFFF");
