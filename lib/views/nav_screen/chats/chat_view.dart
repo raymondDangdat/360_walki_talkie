@@ -125,8 +125,8 @@ class ChatView extends StatelessWidget {
                           final channel = authProvider.userChannelsCreated[index];
                           return InkWell(
                             onTap: (){
-
-                              channelProvider.getChannelMembers(channel.channelId);
+                              channelProvider.setSelectedChannel(channel);
+                              channelProvider.getChannelMembers(context, channel.channelId);
                             },
                             child: Padding(
                               padding: EdgeInsets.only(bottom: AppSize.s3.h),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:walkie_talkie_360/resources/strings_manager.dart';
 import 'package:walkie_talkie_360/views/add_channel_by_name/add_channel_by_name.dart';
+import 'package:walkie_talkie_360/views/channel_users_list_and_chats/channel_members_chats.dart';
 import 'package:walkie_talkie_360/views/channels_type_view/channel_types_view.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/create_brand_new_channel.dart';
 import 'package:walkie_talkie_360/views/fix_password_screen/fix_password_screen.dart';
@@ -27,6 +28,7 @@ class Routes {
   static const loginScreen = "/login_screen";
   static const fixPasswordScreen = "/fix_password_screen";
   static const howItWorksScreen = "/how_it_works";
+  static const channelMembersChats = "/channel_members_chats";
 
 }
 
@@ -55,6 +57,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const FixPasswordScreen());
       case Routes.howItWorksScreen:
         return MaterialPageRoute(builder: (_) => const HowItWorks());
+      case Routes.channelMembersChats:
+        return MaterialPageRoute(builder: (_) => const ChannelMembersChats());
       default:
         return undefinedRoute();
     }

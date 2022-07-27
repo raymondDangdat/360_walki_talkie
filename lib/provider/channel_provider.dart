@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
+import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
 import '../resources/constanst.dart';
@@ -19,6 +20,7 @@ class ChannelProvider extends ChangeNotifier {
   bool _isLoading = false;
   String _resMessage = '';
   List<UserChannelModel> _userChannels = [];
+  UserChannelModel? _selectedChannel;
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
 
@@ -32,6 +34,14 @@ class ChannelProvider extends ChangeNotifier {
   List<UserChannelModel> get userChannelsConnected => _userChannelsConnected;
 
   List<ChannelMembersModel> get channelMembers => _channelMembers;
+  UserChannelModel get selectedChannel => _selectedChannel!;
+
+  setSelectedChannel(UserChannelModel userChannelModel){
+    _selectedChannel = userChannelModel;
+    notifyListeners();
+  }
+
+
 
 
 
@@ -131,15 +141,33 @@ class ChannelProvider extends ChangeNotifier {
   }
 
 
-  Future<void> getChannelMembers(String channelId) async{
-    QuerySnapshot querySnapshot = await channelsCollection
-        .doc(channelId)
-        .collection("members")
-        .get();
-    _channelMembers =  querySnapshot.docs.map((doc) => ChannelMembersModel.fromSnapshot(doc)).toList();
-    print("Length of channels: ${_channelMembers.length}");
-
+  Future<void> getChannelMembers(BuildContext context, String channelId) async{
+    _isLoading = true;
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
+
+    try{
+      QuerySnapshot querySnapshot = await channelsCollection
+          .doc(channelId)
+          .collection("members")
+          .get();
+      _channelMembers =  querySnapshot.docs.map((doc) => ChannelMembersModel.fromSnapshot(doc)).toList();
+      print("Length of channels: ${_channelMembers.length}");
+
+      Navigator.pop(context);
+      _isLoading = false;
+      openChannelMembersChats(context);
+
+      notifyListeners();
+    }catch (e){
+      _isLoading = false;
+      Navigator.pop(context);
+      notifyListeners();
+      print("Error getting members: ${e.toString()}");
+    }
   }
 
 
