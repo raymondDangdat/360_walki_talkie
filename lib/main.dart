@@ -6,6 +6,7 @@ import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/theme_manager.dart';
 
 import 'provider/channel_provider.dart';
+import 'resources/color_manager.dart';
 import 'resources/value_manager.dart';
 import 'resources/routes_manager.dart';
 import 'resources/theme_manager.dart';
@@ -15,6 +16,10 @@ import 'package:provider/provider.dart';
 
 
 void main() async{
+  SystemChrome.setSystemUIOverlayStyle( SystemUiOverlayStyle(
+    systemNavigationBarColor: ColorManager.bgColor, // navigation bar color
+    statusBarColor: ColorManager.bgColor, // status bar color
+  ));
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
@@ -42,7 +47,7 @@ class MyApp extends StatelessWidget {
         builder: (_, child) => MaterialApp(
           debugShowCheckedModeBanner: false,
           onGenerateRoute: RouteGenerator.getRoute,
-          initialRoute: Routes.loginScreen,
+          initialRoute: Routes.initialRoute,
           theme: getApplicationTheme(),
         ));
   }

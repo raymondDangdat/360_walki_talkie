@@ -48,7 +48,7 @@ class _FixPasswordScreenState extends State<FixPasswordScreen> {
                   SizedBox(height: AppSize.s24.h,),
                   Consumer<AuthenticationProvider>(
                       builder: (ctx, auth, child) {
-                        WidgetsBinding.instance?.
+                        WidgetsBinding.instance.
                         addPostFrameCallback((_) {
                           if (auth.resMessage != '') {
                             showTopSnackBar(

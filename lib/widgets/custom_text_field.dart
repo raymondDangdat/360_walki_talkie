@@ -13,6 +13,7 @@ class CustomTextField extends StatelessWidget {
       final String hint;
       final String? labelText;
       final TextEditingController? controller;
+      final bool? isNumbers;
        const CustomTextField({
          Key? key,
          this.autoFocus = false,
@@ -21,7 +22,8 @@ class CustomTextField extends StatelessWidget {
          this.hint = "",
          this.maxLines = 1,
          this.maxLength = 1000,
-          this.controller
+          this.controller,
+         this.isNumbers = false
   }) : super(key: key);
 
   @override
@@ -41,6 +43,7 @@ class CustomTextField extends StatelessWidget {
               maxLines: maxLines,
               maxLength: maxLength,
               obscureText:  obSecureText,
+              keyboardType: isNumbers!? TextInputType.phone : TextInputType.text,
               style: TextStyle(
                 color: ColorManager.textColor,
                   fontSize: FontSize.s16

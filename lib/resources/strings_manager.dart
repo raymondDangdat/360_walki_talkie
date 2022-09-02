@@ -9,16 +9,26 @@ class AppStrings {
   static const wantToTalk =  "want to talk. Just push";
   static const toStartChatting = "to start chatting.";
   static const getAnAccount = "get an account";
+  static const getStarted = "get started";
   static const howItWorks = "how it works";
   static const createCommunication = "create communication channels. engage your team. track the location of each team member, and much more.";
   static const createYourAccount = "create your account";
-  static const fullName = "fullname";
+  static const fullName = "full name";
   static const username = "username";
   static const password = "password";
+  static const male = "male";
   static const email = "email";
+  static const emailAddress = "email address";
+  static const mainChannel = "main channel";
+  static const subChannel = "sub channel";
+  static const settings = "Settings";
+  static const signOut = "sign out";
+  static const profile = "Profile";
+  static const profileStatus = "Profile Status";
   static const phoneNumber = "phone number";
   static const createChannel = "create channel";
   static const createAChannel = "create a channel";
+  static const joinChannel = "join channel";
   static const createQrCode = "create qr code";
   static const createNewChannel = "create new channel";
   static const youCanCreateABrandNewChannel = "you can create a brand new channel for you and your team. you can set password.";
@@ -27,10 +37,11 @@ class AppStrings {
   static const clickToCreate = "click to create";
   static const personalChannel = "personal channel";
   static const createPersonalChannel = "create personal channel for family and friends. This is designed for small circle or a one to one communication";
-  static const addAChannelByName = "add a channel by name";
+  static const addAChannelByName = "add yourself to a channel";
   static const ifYouKnow = "If your know the channel you want join. Simply add it here. ";
   static const clickToContinue = "click to continue.";
   static const generateChannelQrCode = "Generate Channel QR Code Here";
+  static const gender = "gender";
   static const youCanGenerate = "you can generate qr code for each channel you create. ";
   static const clickToGenerate = " click to generate.";
   static const youCanCreateAs = "you can create as many QR Code for as many channel as you like";
@@ -48,6 +59,8 @@ class AppStrings {
   static const chatMessage = "chat message";
   static const noRouteFound = "Oops Route not found";
   static const createAccount = "create account";
+  static const country = "country";
+  static const nigeria = "nigeria";
   static const loginToAccount = "login to account";
   static const enterChannelName = "enter channel name";
   static const channelDescription = "channel description";
@@ -75,6 +88,17 @@ class AppStrings {
   static const chooseFile = "choose file";
   static const changeFIle = "change image";
   static const avatarRequired = "Avatar is required";
+  static const editAccount = "edit account profile";
+  static const resetPassword = "reset password";
+  static const notification = "notification";
+  static const blockChannel = "block channel";
+  static const blockUser = "block user";
+  static const support = "support";
+  static const privacy = "privacy";
+  static const termsAndConditions = "terms & condition";
+  static const youHaveBeenAdded = "you have been added to " ;
+  static const channelSuccessfully =  "channel successfully!";
+  static const returnToDashboard = "return to dashboard";
 
 
 

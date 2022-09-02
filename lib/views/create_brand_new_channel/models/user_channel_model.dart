@@ -7,7 +7,6 @@ class UserChannelModel {
   String channelName;
   bool isCreated;
 
-
   UserChannelModel({
     required this.userId,
     required this.channelId,
@@ -24,5 +23,4 @@ class UserChannelModel {
     );
 
   }
-
 }

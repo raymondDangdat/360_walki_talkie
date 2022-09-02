@@ -208,6 +208,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                               CustomTextField(
                                 controller: phoneNumberController,
                                 hint: AppStrings.phoneNumber,
+                                isNumbers: true,
                                 labelText: AppStrings.phoneNumber,
                                 maxLength: 11,
                               ),
@@ -310,7 +311,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
 
                               Consumer<AuthenticationProvider>(
                                   builder: (ctx, auth, child) {
-                                    WidgetsBinding.instance?.
+                                    WidgetsBinding.instance.
                                     addPostFrameCallback((_) {
                                       if (auth.resMessage != '') {
                                         showTopSnackBar(

@@ -1,7 +1,8 @@
 import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:walkie_talkie_360/resources/font_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:walkie_talkie_360/resources/constanst.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
@@ -132,7 +133,6 @@ class PageViewOnBoarding extends StatelessWidget {
         ],
       ),
     ):
-        index == 2 ?
         SizedBox(
           height: MediaQuery.of(context).size.height,
           width: double.infinity,
@@ -154,9 +154,11 @@ class PageViewOnBoarding extends StatelessWidget {
 
                         Image.asset(AppImages.chatWithUs),
 
+                        SizedBox(height: AppSize.s10.h,),
                         CustomTextWithLineHeight(text:
                         AppStrings.whenYouSimplyDont, textColor:
                         ColorManager.textColor,),
+
 
                         CustomTextWithLineHeight(text: AppStrings.wantToTalk,
                           textColor: ColorManager.textColor,),
@@ -165,60 +167,18 @@ class PageViewOnBoarding extends StatelessWidget {
                         AppStrings.toStartChatting, textColor:
                         ColorManager.textColor,),
 
-                        // SizedBox(height: AppSize.s208.h,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            CustomTextWithLineHeight(text: "Dots coming here",
-                                textColor: ColorManager.whiteColor),
-                          ],
-                        ),
+                        SizedBox(height: AppSize.s50.h,),
+                        WalkieButton(context: context, onTap: ()async{
+                          final prefs = await SharedPreferences.getInstance();
+                          prefs.setBool(showOnBoarding, false);
+                          openNewGetStartedScreen(context);
+                        }, title:
+                        AppStrings.getStarted),
                       ],
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
-        ) :
-        SizedBox(
-          height: MediaQuery.of(context).size.height,
-          width: double.infinity,
-          child: Column(
-            children: [
-              SizedBox(height: AppSize.s100.h,),
-
-              Image.asset(AppImages.walkieTalkieCircle),
-
-              SizedBox(height: AppSize.s20.h,),
-              
-              WalkieButton(context: context, onTap: (){
-                openAccountCreateScreen(context);
-              }, title:
-              AppStrings.getAnAccount),
-
-              SizedBox(height: AppSize.s17.h,),
-
-              WalkieButtonBordered(context: context, onTap: (){
-                openHowItWorksScreen(context);
-                // openLoginScreen(context);
-              },
-                title: AppStrings.howItWorks, textColor: ColorManager.textColor,
-                borderColor: ColorManager.textColor,),
-
-              SizedBox(height: AppSize.s31.h,),
-
-              SizedBox(width: AppSize.s280.w,
-              child: CustomTextWithLineHeight(text: AppStrings.createCommunication, fontSize: FontSize.s18,  textColor: ColorManager.textColor,),),
-
-              SizedBox(height: AppSize.s100.h,),
-
-              CustomTextWithLineHeight(text: "Dots coming here",
-                  textColor: ColorManager.whiteColor),
-
-
-
-
             ],
           ),
         );
@@ -234,8 +194,5 @@ final List<Widget> pages = [
   ),
   const PageViewOnBoarding(
     index: 2,
-  ),
-  const PageViewOnBoarding(
-    index: 3,
   ),
 ];

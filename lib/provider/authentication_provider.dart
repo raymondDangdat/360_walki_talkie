@@ -23,6 +23,23 @@ class AuthenticationProvider extends ChangeNotifier {
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
 
+  bool _notificationOn = false;
+  bool get notificationOn => _notificationOn;
+
+  String _channelNameJoined = "";
+  String get channelNameJoined => _channelNameJoined;
+
+
+  void changeNotificationStatus(bool value){
+    _notificationOn = value;
+    notifyListeners();
+  }
+
+  void updateChannelNameJoined(String value){
+    _channelNameJoined = value;
+    notifyListeners();
+  }
+
 
 
 
@@ -239,7 +256,6 @@ class AuthenticationProvider extends ChangeNotifier {
 
 
   Future<void> getUserChannels(String userId) async{
-    print("User ID $userId");
     QuerySnapshot querySnapshot = await userCollection
         .doc(userId)
         .collection("channels")
@@ -252,7 +268,6 @@ class AuthenticationProvider extends ChangeNotifier {
     print("Length of channels: ${_userChannels.length}");
     print("Length of created channels: ${_userChannelCreated.length}");
     print("Length of connected channels: ${_userChannelsConnected.length}");
-
     notifyListeners();
   }
 
