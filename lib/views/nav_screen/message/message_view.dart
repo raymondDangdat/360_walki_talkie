@@ -17,8 +17,8 @@ class MessageView extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(height: AppSize.s20.h,),
-          const NavScreensHeader(),
+          // SizedBox(height: AppSize.s20.h,),
+          // const NavScreensHeader(),
 
           SizedBox(height: AppSize.s94.h,),
 

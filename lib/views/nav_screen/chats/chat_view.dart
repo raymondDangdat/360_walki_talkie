@@ -12,8 +12,6 @@ import 'package:walkie_talkie_360/widgets/custom_text.dart';
 
 
 
-import '../../../widgets/nav_screens_header.dart';
-
 class ChatView extends StatelessWidget {
   const ChatView({Key? key}) : super(key: key);
 
@@ -24,8 +22,8 @@ class ChatView extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          SizedBox(height: AppSize.s20.h,),
-          const NavScreensHeader(),
+          // SizedBox(height: AppSize.s20.h,),
+          // const NavScreensHeader(),
 
           Expanded(
             child: SingleChildScrollView(
@@ -125,8 +123,8 @@ class ChatView extends StatelessWidget {
                           final channel = authProvider.userChannelsCreated[index];
                           return InkWell(
                             onTap: (){
-
-                              channelProvider.getChannelMembers(channel.channelId);
+                              channelProvider.setSelectedChannel(channel);
+                              channelProvider.getChannelMembers(context, channel.channelId);
                             },
                             child: Padding(
                               padding: EdgeInsets.only(bottom: AppSize.s3.h),
@@ -142,7 +140,7 @@ class ChatView extends StatelessWidget {
                               ),
                             ),
                           );
-                        })  : CustomTextWithLineHeight(text: "No Creared Channels",
+                        })  : CustomTextWithLineHeight(text: "No Created Channels",
                       textColor: ColorManager.textColor,
                       fontSize: FontSize.s24,),
                   ),
@@ -167,6 +165,8 @@ class ChatView extends StatelessWidget {
                           final channel = authProvider.userChannelsConnected[index];
                           return InkWell(
                             onTap: (){
+                              channelProvider.setSelectedChannel(channel);
+                              channelProvider.getChannelMembers(context, channel.channelId);
                             },
                             child: Padding(
                               padding: EdgeInsets.only(bottom: AppSize.s3.h),

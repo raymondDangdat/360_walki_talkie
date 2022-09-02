@@ -350,7 +350,7 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                       SizedBox(height: AppSize.s30.h,),
                       Consumer<ChannelProvider>(
                           builder: (ctx, channelProvider, child) {
-                          WidgetsBinding.instance?.
+                          WidgetsBinding.instance.
                           addPostFrameCallback((_) {
                             if(channelProvider.resMessage != '') {
                               showTopSnackBar(
@@ -366,7 +366,7 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                             }
                           });
                           return WalkieButton(context: context, onTap: ()async{
-                            final isCreated = await channelProvider.createChannel(
+                            final isCreated = await channelProvider.createBrandNewChannel(
                                 context, channelNameController.text.trim(),
                                 selectedChannelType!.channelType,
                                 channelPasswordController.text.trim(),

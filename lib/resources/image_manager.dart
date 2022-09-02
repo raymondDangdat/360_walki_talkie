@@ -40,7 +40,33 @@ class AppImages {
   static const smileBig = "assets/images/smile_big.png";
   static const messageCircle = "assets/images/message-circle.png";
   static const buttonCreateAccount = "assets/images/button_create_account.png";
-
-
+  static const channelMemberBg = "assets/images/create_channel_options.png";
+  static const memberSpeaking = "assets/images/member_speaking.svg";
+  static const memberIcon = "assets/images/member_icon.svg";
+  static const camera = "assets/images/icons/camera.svg";
+  static const dummyGuy = "assets/images/dummy_guy.png";
+  static const profileUserIcon = "assets/images/icons/profile_user_icon.svg";
+  static const profileEmailIcon = "assets/images/icons/profile_email_icon.svg";
+  static const profileGenderIcon = "assets/images/icons/profile_gender_icon.svg";
+  static const profileLocationIcon = "assets/images/icons/profile_location_icon.svg";
+  static const profileMainChannelIcon = "assets/images/icons/profile_main_channel_icon.svg";
+  static const profileSubChannelIcon = "assets/images/icons/profile_sub_channel_icon.svg";
+  static const profileCallIcon = "assets/images/icons/profilr_call_icon.svg";
+  static const signoutBg = "assets/images/signout_bg.png";
+  static const gearIcon = "assets/images/icons/gear_icon.svg";
+  static const settingaItemsBg = "assets/images/settings_item_bg.png";
+  static const editAccountProfileIcon = "assets/images/icons/settings_user_icon.svg";
+  static const resetPasswordIcon = "assets/images/icons/reset_password_icon.svg";
+  static const notificationIcon = "assets/images/icons/notification_icon.svg";
+  static const blockChannelIcon = "assets/images/icons/block_channel_icon.svg";
+  static const blockUserIcon = "assets/images/icons/block_user.svg";
+  static const supportIcon = "assets/images/icons/support_icon.svg";
+  static const privacyIcon = "assets/images/icons/privacy_icon.svg";
+  static const termsAndConditionIcon = "assets/images/icons/terms_and_condition_icon.svg";
+  static const forwardArrowIcon = "assets/images/icons/forward_arrow.svg";
+  static const channelDivider = "assets/images/channel_divider.svg";
+  static const notificationToggleOn = "assets/images/notification_toggle_on.svg";
+  static const notificationToggleOff = "assets/images/notification_toggle_off.svg";
+  static const checkedIcon = "assets/images/checked_icon.svg";
 
 }

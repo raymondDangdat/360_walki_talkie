@@ -11,12 +11,20 @@ void openGetStartedScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.getStartedScreen);
 }
 
+void openNewGetStartedScreen(BuildContext context) async{
+  Navigator.pushReplacementNamed(context, Routes.newGetStartedScreen);
+}
+
 void openChannelTypeScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.channelTypes);
 }
 
 void openNavScreen(BuildContext context) async{
   Navigator.pushReplacementNamed(context, Routes.navScreenView);
+}
+
+void openChannelJoinedScreen(BuildContext context) async{
+  Navigator.pushReplacementNamed(context, Routes.channelJoinedSuccessfully);
 }
 
 void openAddChannelByName(BuildContext context) async{
@@ -41,6 +49,18 @@ void openLoginScreen(BuildContext context) async{
 
 void openHowItWorksScreen(BuildContext context) async{
   Navigator.pushNamed(context, Routes.howItWorksScreen);
+}
+
+void openChannelMembersChats(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.channelMembersChats);
+}
+
+void openProfileScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.profileScreen);
+}
+
+void openSettingScreen(BuildContext context) async{
+  Navigator.pushNamed(context, Routes.settingsScreen);
 }
 
 

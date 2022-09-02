@@ -2,7 +2,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
-import 'package:walkie_talkie_360/widgets/nav_screens_header.dart';
 
 import '../../../resources/color_manager.dart';
 import '../../../resources/font_manager.dart';
@@ -18,21 +17,21 @@ class ChannelView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: AppSize.s46.h,),
+        // SizedBox(height: AppSize.s46.h,),
 
-        Container(
-          height: AppSize.s54.h,
-          decoration: BoxDecoration(
-              color: ColorManager.textColor
-          ),
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              NavScreensHeader()
-            ],
-          ),
-        ),
+        // Container(
+        //   height: AppSize.s54.h,
+        //   decoration: BoxDecoration(
+        //       color: ColorManager.textColor
+        //   ),
+        //   alignment: Alignment.center,
+        //   child: Column(
+        //     mainAxisAlignment: MainAxisAlignment.center,
+        //     children: const [
+        //       NavScreensHeader()
+        //     ],
+        //   ),
+        // ),
 
 
 
@@ -132,7 +131,7 @@ class ChannelView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomTextWithLineHeight(text: AppStrings.generateChannelQrCode, textColor: ColorManager.darkTextColor,),
+              CustomTextWithLineHeight(text: AppStrings.generateChannelQrCode, textColor: ColorManager.darkTextColor, fontSize: FontSize.s20,),
               SizedBox(height: AppSize.s4.h,),
               SizedBox(
                 width: AppSize.s364.w,

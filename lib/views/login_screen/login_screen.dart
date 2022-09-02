@@ -23,6 +23,13 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    emailController.text = "eli@gmail.com";
+    passwordController.text = "smart001";
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       SizedBox(height: AppSize.s24.h,),
                       Consumer<AuthenticationProvider>(
                           builder: (ctx, auth, child) {
-                            WidgetsBinding.instance?.
+                            WidgetsBinding.instance.
                             addPostFrameCallback((_) {
                               if (auth.resMessage != '') {
                                 showTopSnackBar(
