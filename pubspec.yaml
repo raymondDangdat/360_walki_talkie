@@ -26,6 +26,7 @@ dependencies:
 
   record_mp3: ^3.0.0
   audioplayers: ^0.20.1
+  just_audio: ^0.9.28
   path:
   permission_handler: ^10.0.0
   path_provider: ^2.0.11
@@ -51,9 +52,11 @@ dependencies:
 
   provider: ^6.0.3
 
+#  flutter_audio_rec: ^1.0.8
+  another_audio_recorder: ^1.0.1
+
   http:
 
-  flutter_audio_recorder2: ^0.0.2
 
   sizer: ^2.0.15
 

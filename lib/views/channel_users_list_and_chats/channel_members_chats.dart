@@ -7,9 +7,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:http/http.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:record_mp3/record_mp3.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
@@ -195,159 +192,215 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats> {
   //   });
   // }
 
-
   @override
   Widget build(BuildContext context) {
     final channelProvider = context.watch<ChannelProvider>();
     final authProvider = context.watch<AuthenticationProvider>();
+    final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
+        .collection('channelRoom')
+        .doc(channelProvider.selectedChannel.channelId)
+        .collection('chats')
+        .orderBy('timeStamp')
+        .limitToLast(1)
+        .snapshots();
+
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
+      body: StreamBuilder(
+        stream: _recordingStream,
+        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+          if (snapshot.hasError) {
+            return const Text('Something went wrong');
+          }
 
-      body: SafeArea(
-        child: Column(
-          children: [
-            // SizedBox(height: AppSize.s20.h,),
-            const NavScreensHeader(),
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text("Loading");
+          }
 
-            SizedBox(height: AppSize.s52.h,),
+          snapshot.data!.docs.map((DocumentSnapshot document) {
+            if (document.exists) {
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
 
-            CustomTextWithLineHeight(text: AppStrings.userName, textColor: ColorManager.textColor,),
+              play() async {
+                final player = AudioPlayer();
+                await player.play(data['record']);
+              }
+              play(); //Calling the player
+            }
+          }).toList();
 
-            SizedBox(height: AppSize.s38.h,),
+          return SafeArea(
+            child: Column(
+              children: [
+                // SizedBox(height: AppSize.s20.h,),
+                const NavScreensHeader(),
 
-            SizedBox(
-              width: AppSize.s250.w,
-                height: AppSize.s250.w,
-                child: GestureDetector(
-                    onTapDown: (_) => channelProvider.recordSound(),
-                    onTapCancel: () => channelProvider.uploadSound(authProvider.userInfo.userName),
-                    onTapUp: (_) => channelProvider.uploadSound(authProvider.userInfo.userName),
-                    child: SvgPicture.asset(AppImages.tapToTalk))),
+                SizedBox(
+                  height: AppSize.s52.h,
+                ),
 
-            SizedBox(height: AppSize.s40.h,),
+                CustomTextWithLineHeight(
+                  text: AppStrings.userName,
+                  textColor: ColorManager.textColor,
+                ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSize.s33),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SvgPicture.asset(AppImages.speaker),
-                  InkWell(
-                    onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ChatDisplayView()));
-                    },
-                      child: SvgPicture.asset(AppImages.option)),
+                SizedBox(
+                  height: AppSize.s38.h,
+                ),
 
-                ],
-              ),
-            ),
+                SizedBox(
+                    width: AppSize.s250.w,
+                    height: AppSize.s250.w,
+                    child: GestureDetector(
+                        onLongPress: () => channelProvider.recordSound(),
+                        onTapUp: (_) {
+                          channelProvider
+                              .uploadSound(authProvider.userInfo.userName);
+                        },
+                        child: SvgPicture.asset(AppImages.tapToTalk))),
 
-            SizedBox(height: AppSize.s15.h,),
+                SizedBox(height: AppSize.s40.h),
 
-            Container(
-              height: AppSize.s52.h,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                  image: AssetImage(
-                      AppImages.dashboardStats), fit: BoxFit.cover),
-            ),
-              alignment: Alignment.center,
-              child: Row(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: AppSize.s18.w),
-                    child: CustomTextWithLineHeight(
-                        text: "Channel: ${channelProvider.selectedChannel.channelName} | ${channelProvider.channelMembers.length} Member(s)",
-                      textColor: const Color.fromRGBO(248, 201, 158, 1),
-                      fontSize: FontSize.s16, fontWeight: FontWeightManager.semiBold,
-                    ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSize.s33),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SvgPicture.asset(AppImages.speaker),
+                      InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ChatDisplayView()));
+                          },
+                          child: SvgPicture.asset(AppImages.option)),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // Expanded(child: ListView.builder(
-            //   itemCount: channelProvider.channelMembers.length,
-            //     itemBuilder: (context, index){
-            //     final member = channelProvider.channelMembers[index];
-            //       return Padding(
-            //         padding: EdgeInsets.symmetric(vertical: AppSize.s2.h),
-            //         child: Container(
-            //           padding: EdgeInsets.symmetric(horizontal: AppSize.s24.w),
-            //           width: double.infinity,
-            //           height: AppSize.s42.h,
-            //           decoration: const BoxDecoration(
-            //             color: Color.fromRGBO(255, 213, 79, 0.2),
-            //           ),
-            //           child: Row(
-            //             children: [
-            //               SvgPicture.asset(AppImages.memberIcon),
-            //               SizedBox(width: AppSize.s16.w,),
-            //               Expanded(
-            //                 child: CustomText(text: member.userFullName,
-            //                   textColor: const Color.fromRGBO(238, 233, 219, 1),
-            //                   fontSize: 16,
-            //                 ),
-            //               ),
-            //
-            //               SvgPicture.asset(AppImages.memberSpeaking),
-            //
-            //             ],
-            //           ),
-            //         ),
-            //       );
-            //     })),
+                SizedBox(
+                  height: AppSize.s15.h,
+                ),
 
-            Expanded(child: SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('channels').doc(channelProvider.selectedChannel.channelId).collection("members")
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data != null) {
-                    return ListView.builder(
-                      itemCount: snapshot.data?.docs.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: EdgeInsets.symmetric(vertical: AppSize.s2.h),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: AppSize.s24.w),
-                            width: double.infinity,
-                            height: AppSize.s42.h,
-                            decoration: const BoxDecoration(
-                              color: Color.fromRGBO(255, 213, 79, 0.2),
-                            ),
-                            child: Row(
-                              children: [
-                                SvgPicture.asset(AppImages.memberIcon),
-                                SizedBox(width: AppSize.s16.w,),
-                                Expanded(
-                                  child: CustomText(text: snapshot.data?.docs[index]["userFullName"],
-                                    textColor: const Color.fromRGBO(238, 233, 219, 1),
-                                    fontSize: 16,
-                                  ),
+                Container(
+                  height: AppSize.s52.h,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                        image: AssetImage(AppImages.dashboardStats),
+                        fit: BoxFit.cover),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: AppSize.s18.w),
+                        child: CustomTextWithLineHeight(
+                          text:
+                              "Channel: ${channelProvider.selectedChannel.channelName} | ${channelProvider.channelMembers.length} Member(s)",
+                          textColor: const Color.fromRGBO(248, 201, 158, 1),
+                          fontSize: FontSize.s16,
+                          fontWeight: FontWeightManager.semiBold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Expanded(child: ListView.builder(
+                //   itemCount: channelProvider.channelMembers.length,
+                //     itemBuilder: (context, index){
+                //     final member = channelProvider.channelMembers[index];
+                //       return Padding(
+                //         padding: EdgeInsets.symmetric(vertical: AppSize.s2.h),
+                //         child: Container(
+                //           padding: EdgeInsets.symmetric(horizontal: AppSize.s24.w),
+                //           width: double.infinity,
+                //           height: AppSize.s42.h,
+                //           decoration: const BoxDecoration(
+                //             color: Color.fromRGBO(255, 213, 79, 0.2),
+                //           ),
+                //           child: Row(
+                //             children: [
+                //               SvgPicture.asset(AppImages.memberIcon),
+                //               SizedBox(width: AppSize.s16.w,),
+                //               Expanded(
+                //                 child: CustomText(text: member.userFullName,
+                //                   textColor: const Color.fromRGBO(238, 233, 219, 1),
+                //                   fontSize: 16,
+                //                 ),
+                //               ),
+                //
+                //               SvgPicture.asset(AppImages.memberSpeaking),
+                //
+                //             ],
+                //           ),
+                //         ),
+                //       );
+                //     })),
+
+                Expanded(
+                    child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('channels')
+                        .doc(channelProvider.selectedChannel.channelId)
+                        .collection("members")
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return ListView.builder(
+                          itemCount: snapshot.data?.docs.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding:
+                                  EdgeInsets.symmetric(vertical: AppSize.s2.h),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: AppSize.s24.w),
+                                width: double.infinity,
+                                height: AppSize.s42.h,
+                                decoration: const BoxDecoration(
+                                  color: Color.fromRGBO(255, 213, 79, 0.2),
                                 ),
-
-                                SvgPicture.asset(AppImages.memberSpeaking),
-
-                              ],
-                            ),
-                          ),
+                                child: Row(
+                                  children: [
+                                    SvgPicture.asset(AppImages.memberIcon),
+                                    SizedBox(
+                                      width: AppSize.s16.w,
+                                    ),
+                                    Expanded(
+                                      child: CustomText(
+                                        text: snapshot.data?.docs[index]
+                                            ["userFullName"],
+                                        textColor: const Color.fromRGBO(
+                                            238, 233, 219, 1),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SvgPicture.asset(AppImages.memberSpeaking),
+                                  ],
+                                ),
+                              ),
+                            );
+                            // return buildItem( context, snapshot.data?.docs[index]);
+                          },
                         );
-                        // return buildItem( context, snapshot.data?.docs[index]);
-                      },
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
-              ),
-            ))
-
-          ],
-        ),
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
+                ))
+              ],
+            ),
+          );
+        },
       ),
     );
   }
