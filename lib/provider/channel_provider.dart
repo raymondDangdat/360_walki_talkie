@@ -1,10 +1,14 @@
 import 'dart:io';
-import 'package:another_audio_recorder/another_audio_recorder.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:encryptor/encryptor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
@@ -13,12 +17,14 @@ import '../models/message.dart';
 import '../resources/constanst.dart';
 import '../service/abstracts/audio_player_service.dart';
 import '../service/abstracts/storage_service.dart';
+import '../views/channel_users_list_and_chats/channel_members_chats.dart';
 import '../widgets/loading.dart';
 
 import 'package:random_string/random_string.dart';
 
 class ChannelProvider extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   ///Setter
   bool _isLoading = false;
@@ -44,7 +50,11 @@ class ChannelProvider extends ChangeNotifier {
 
   String _filePath = "";
   String get filePath => _filePath;
-  AnotherAudioRecorder? _audioRecorder;
+
+
+
+  FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
+  bool _mRecorderInitialised = false;
 
   Stream<QuerySnapshot<Object?>>? _chatRooms;
   Stream<QuerySnapshot<Object?>>? get chatRooms => _chatRooms;
@@ -76,7 +86,10 @@ class ChannelProvider extends ChangeNotifier {
 
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
-  late Task task;
+  late Task uploadTask;
+  late String cloudNakedURL;
+
+
   final storageRef = FirebaseStorage.instance.ref();
 
   int get currentId => _currentId;
@@ -118,7 +131,7 @@ class ChannelProvider extends ChangeNotifier {
     final List<Reference> _references =
         await _storageService.getUserRecords(_chatRoomId, _sendBy);
     _reference = _references.where((element) {
-      if (element.name == (_time.toString() + '.wav')) return true;
+      if (element.name == (_time.toString() + '.mp4')) return true;
       return false;
     });
     _loadedChatRoomId = _chatRoomId;
@@ -340,68 +353,69 @@ class ChannelProvider extends ChangeNotifier {
   }
 
   Future<void> recordSound() async {
-    bool hasRecordingPermission = await AnotherAudioRecorder.hasPermissions;
-    // final bool? hasRecordingPermission =
-    // await FlutterAudioRec.hasPermissions;
-
-    if (hasRecordingPermission) {
-      _isRecording = true;
-      notifyListeners();
-      Directory directory = await getApplicationDocumentsDirectory();
-
-      _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
-      String filepath = directory.path + '/' + _recordTime + '.wav';
-
-      _audioRecorder =
-          AnotherAudioRecorder(filepath, audioFormat: AudioFormat.WAV);
-      notifyListeners();
-      if (_audioRecorder != null) {
-        await _audioRecorder!.initialized;
-        _audioRecorder!.start();
+    if (!kIsWeb) {
+      var status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        throw RecordingPermissionException('Microphone permission not granted');
       }
-      _filePath = filepath;
-      notifyListeners();
-      print("File Path $_filePath");
-    } else {
-      // Get.snackbar('Could not record!', 'Please enable recording permission.');
     }
+    await _mRecorder!.openRecorder();
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
+
+    _mRecorderInitialised = true;
+    _isRecording = true;
+    notifyListeners();
+    Directory directory = await getApplicationDocumentsDirectory();
+
+    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+    String filepath = directory.path + '/' + _recordTime + '.mp4';
+
+    _mRecorder!.startRecorder(
+      toFile: filepath,
+      codec: Codec.aacMP4,
+      audioSource: theSource,
+    );
+    notifyListeners();
+
+    _filePath = filepath;
+    print("File Path $_filePath");
+    notifyListeners();
   }
 
-  Future<void> stopRecord() async {
-    bool hasRecordingPermission = await AnotherAudioRecorder.hasPermissions;
-    // final bool? hasRecordingPermission =
-    // await FlutterAudioRec.hasPermissions;
-
-    if (hasRecordingPermission) {
-      _isRecording = true;
-      notifyListeners();
-      Directory directory = await getApplicationDocumentsDirectory();
-
-      _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
-      String filepath = directory.path + '/' + _recordTime + '.wav';
-
-      _audioRecorder =
-          AnotherAudioRecorder(filepath, audioFormat: AudioFormat.WAV);
-      notifyListeners();
-      if (_audioRecorder != null) {
-        await _audioRecorder!.initialized;
-        _audioRecorder!.stop();
-      }
-      _filePath = filepath;
-      notifyListeners();
-      print("File Path $_filePath");
-    } else {
-      // Get.snackbar('Could not record!', 'Please enable recording permission.');
-    }
+  Future stopRecord() async {
+    await _mRecorder?.stopRecorder();
+    notifyListeners();
+    _isUploading = false;
+    notifyListeners();
+    return _filePath;
   }
 
-
-
-  void uploadSound(String user) async {
-    if (_audioRecorder == null) return;
+  void uploadSound({required String user}) async {
+    print("START UPLOAD $user");
+    if (_mRecorder == null) return;
 
     //stop recording
-    await _audioRecorder!.stop();
+    await _mRecorder!.stopRecorder();
+    notifyListeners();
+
+    late String encryptedURL;
 
     // _setEffect();
 
@@ -413,12 +427,12 @@ class ChannelProvider extends ChangeNotifier {
     // _currentState.value = 'Sending record...';
 
     //get details
-    final audioDetails = await _audioRecorder!.current();
-    late String recordedUrl;
+    final audioDetails = _mRecorder?.recordingData();
 
     //update screen
     _isRecording = false;
     _isUploading = true;
+    notifyListeners();
 
     //upload record to firebase
     FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -434,7 +448,14 @@ class ChannelProvider extends ChangeNotifier {
           .putFile(File(_filePath))
           .then((result) async {
         final cloudRecordRef = storageRef.child(result.metadata!.fullPath);
-        recordedUrl = await cloudRecordRef.getDownloadURL();
+        encryptData(
+                encryptionKey: FirebaseAuth.instance.currentUser!.uid,
+                dataToEncrypt: await cloudRecordRef.getDownloadURL())
+            .then((result) {
+          encryptedURL = result;
+          print("Uploaded Sound");
+          print(encryptedURL);
+        });
       });
     } catch (e) {
       _isSuccessful = false;
@@ -444,8 +465,11 @@ class ChannelProvider extends ChangeNotifier {
       if (_isSuccessful) {
         Map<String, dynamic> _lastMessageInfo = {
           'lastMessageTime': int.parse(_recordTime),
-          'lastMessageDuration': audioDetails!.duration!.inSeconds,
+          'lastMessageDuration':
+              10, //TODO  replace this with the real recorded duration
         };
+
+        print("NOW IN CHATROOM");
 
         await updateLastMessageInfo(
             _lastMessageInfo, _selectedChannel!.channelId);
@@ -453,23 +477,85 @@ class ChannelProvider extends ChangeNotifier {
         await addMessage(
           _selectedChannel!.channelId,
           Message(
-              record: recordedUrl,
-              duration: audioDetails.duration!.inSeconds,
+              record: encryptedURL,
+              duration: 10, //TODO  replace this with the real recorded duration
               sendBy: user,
               time: int.parse(_recordTime),
               timeStamp: DateTime.now()),
         );
+        print("uploaded");
       }
       _isUploading = false;
+      notifyListeners();
+    }
+  }
+
+  sendSound({required String user}) async {
+    if (_mRecorder == null) return;
+
+    //stop recording
+    await _mRecorder!.stopRecorder();
+    _isRecording = false;
+    notifyListeners();
+
+    late String encryptedURL;
+    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+    try {
+      _isSuccessful = true;
+      await firebaseStorage
+          .ref('records')
+          .child(_selectedChannel!.channelId)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .child(
+              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
+          .putFile(File(_filePath))
+          .then((result) async {
+        var url = await (result).ref.getDownloadURL();
+        var uploadedUrl = url.toString();
+
+        cloudNakedURL = uploadedUrl;
+        notifyListeners();
+          });
+    } on FirebaseException catch (e) {
+      _isSuccessful = false;
+      _resMessage =
+          "Could not send!', 'Error occurred while sending message, please check your connection.";
+      if (kDebugMode) {
+        print(e.toString());
+      }
+    } finally {
+      if (_isSuccessful) {
+        Map<String, dynamic> _lastMessageInfo = {
+          'lastMessageTime': int.parse(_recordTime),
+          'lastMessageDuration':
+              10, //TODO  replace this with the real recorded duration
+        };
+        await updateLastMessageInfo(
+            _lastMessageInfo, _selectedChannel!.channelId);
+
+        await addMessage(
+          _selectedChannel!.channelId,
+          Message(
+              record: encryptData(dataToEncrypt: cloudNakedURL, encryptionKey: _firebaseAuth.currentUser!.uid),
+              duration: 10, //TODO  replace this with the real recorded duration
+              sendBy: user,
+              time: int.parse(_recordTime),
+              timeStamp: DateTime.now()),
+        );
+        print("uploaded");
+      }
+      _isUploading = false;
+      notifyListeners();
+
     }
   }
 
   Future<void> updateLastMessageInfo(
       Map<String, dynamic> lastMessageInfo, String chatRoomId) async {
-    FirebaseFirestore.instance
+    firestore
         .collection('channelRoom')
         .doc(chatRoomId)
-        .update(lastMessageInfo)
+        .set(lastMessageInfo)
         .catchError((e) {
       debugPrint(e.toString());
     });
@@ -508,5 +594,17 @@ class ChannelProvider extends ChangeNotifier {
     _resMessage = "";
     // _isLoading = false;
     notifyListeners();
+  }
+
+  encryptData({required String dataToEncrypt, required String encryptionKey}) {
+    var encrypted = Encryptor.encrypt(encryptionKey, dataToEncrypt);
+    // print(encrypted);
+    return encrypted;
+  }
+
+  decryptData({required String encryptedData, required String encryptionKey}) {
+    var decrypted = Encryptor.decrypt(encryptionKey, encryptedData);
+    //print(decrypted);
+    return decrypted;
   }
 }

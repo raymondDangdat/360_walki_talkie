@@ -42,6 +42,7 @@ dependencies:
   firebase_storage: ^8.0.3
   firebase_core: ^1.19.2
   image_picker: ^0.8.5+3
+  lottie: ^1.4.2
   cached_network_image: ^3.2.0
 
   top_snackbar_flutter: ^2.0.0
@@ -51,9 +52,10 @@ dependencies:
   get: ^4.3.8
 
   provider: ^6.0.3
+  flutter_sound: ^9.2.13
+  audio_session: ^0.1.10
+  encryptor: ^0.0.1
 
-#  flutter_audio_rec: ^1.0.8
-  another_audio_recorder: ^1.0.1
 
   http:
 
@@ -89,6 +91,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/lottie/
     - assets/images/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see

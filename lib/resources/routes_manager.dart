@@ -74,6 +74,7 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case Routes.channelMembersChats:
         return MaterialPageRoute(builder: (_) => const ChannelMembersChats());
+
       case Routes.settingsScreen:
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
       case Routes.channelJoinedSuccessfully:

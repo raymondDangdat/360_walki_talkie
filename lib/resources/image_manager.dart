@@ -2,6 +2,7 @@ const String imagePath = "assets/images";
 
 class AppImages {
   static const  talkImage = "assets/images/talk.png";
+  static const  recordingAnimation = "assets/lottie/recorder.json";
   static const  walkieTalkieLeft = "assets/images/walkie_talkie_left.png";
   static const  three60 = "assets/images/three60.png";
   static const  walkieTalkieMetal = "assets/images/walkie_talkie_circle.png";
