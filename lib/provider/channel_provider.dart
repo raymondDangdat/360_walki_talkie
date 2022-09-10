@@ -1,11 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:encryptor/encryptor.dart';
+import 'package:file_cryptor/file_cryptor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -51,7 +53,11 @@ class ChannelProvider extends ChangeNotifier {
   String _filePath = "";
   String get filePath => _filePath;
 
+  String _encryptedFilePath = "";
+  String get encryptedFilePath => _encryptedFilePath;
 
+  String _decryptedFilePath = "";
+  String get decryptedFilePath => _decryptedFilePath;
 
   FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
   bool _mRecorderInitialised = false;
@@ -87,8 +93,9 @@ class ChannelProvider extends ChangeNotifier {
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
   late Task uploadTask;
+  late File myEncryptedPath;
+  late File myDecryptedPath;
   late String cloudNakedURL;
-
 
   final storageRef = FirebaseStorage.instance.ref();
 
@@ -386,6 +393,10 @@ class ChannelProvider extends ChangeNotifier {
 
     _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
     String filepath = directory.path + '/' + _recordTime + '.mp4';
+    String encryptedFilePath = directory.path + '/' + _recordTime + '.aes';
+    String decryptedFilePath = directory.path + '/' + _recordTime + '.aes';
+
+    _encryptedFilePath = encryptedFilePath;
 
     _mRecorder!.startRecorder(
       toFile: filepath,
@@ -395,7 +406,6 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
 
     _filePath = filepath;
-    print("File Path $_filePath");
     notifyListeners();
   }
 
@@ -407,89 +417,6 @@ class ChannelProvider extends ChangeNotifier {
     return _filePath;
   }
 
-  void uploadSound({required String user}) async {
-    print("START UPLOAD $user");
-    if (_mRecorder == null) return;
-
-    //stop recording
-    await _mRecorder!.stopRecorder();
-    notifyListeners();
-
-    late String encryptedURL;
-
-    // _setEffect();
-
-    // if (_effectCommand != null) {
-    //   _currentState.value = 'Adding effect...';
-    //   _filePath = await _addEffectToRecord(_effectCommand!);
-    // }
-
-    // _currentState.value = 'Sending record...';
-
-    //get details
-    final audioDetails = _mRecorder?.recordingData();
-
-    //update screen
-    _isRecording = false;
-    _isUploading = true;
-    notifyListeners();
-
-    //upload record to firebase
-    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-
-    try {
-      _isSuccessful = true;
-      await firebaseStorage
-          .ref('records')
-          .child(_selectedChannel!.channelId)
-          .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(
-              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
-          .putFile(File(_filePath))
-          .then((result) async {
-        final cloudRecordRef = storageRef.child(result.metadata!.fullPath);
-        encryptData(
-                encryptionKey: FirebaseAuth.instance.currentUser!.uid,
-                dataToEncrypt: await cloudRecordRef.getDownloadURL())
-            .then((result) {
-          encryptedURL = result;
-          print("Uploaded Sound");
-          print(encryptedURL);
-        });
-      });
-    } catch (e) {
-      _isSuccessful = false;
-      _resMessage =
-          "Could not send!', 'Error occurred while sending message, please check your connection.";
-    } finally {
-      if (_isSuccessful) {
-        Map<String, dynamic> _lastMessageInfo = {
-          'lastMessageTime': int.parse(_recordTime),
-          'lastMessageDuration':
-              10, //TODO  replace this with the real recorded duration
-        };
-
-        print("NOW IN CHATROOM");
-
-        await updateLastMessageInfo(
-            _lastMessageInfo, _selectedChannel!.channelId);
-
-        await addMessage(
-          _selectedChannel!.channelId,
-          Message(
-              record: encryptedURL,
-              duration: 10, //TODO  replace this with the real recorded duration
-              sendBy: user,
-              time: int.parse(_recordTime),
-              timeStamp: DateTime.now()),
-        );
-        print("uploaded");
-      }
-      _isUploading = false;
-      notifyListeners();
-    }
-  }
-
   sendSound({required String user}) async {
     if (_mRecorder == null) return;
 
@@ -498,6 +425,11 @@ class ChannelProvider extends ChangeNotifier {
     _isRecording = false;
     notifyListeners();
 
+    encryptFile().then((result) {
+      myEncryptedPath = result;
+      notifyListeners();
+    });
+
     late String encryptedURL;
     FirebaseStorage firebaseStorage = FirebaseStorage.instance;
     try {
@@ -506,16 +438,16 @@ class ChannelProvider extends ChangeNotifier {
           .ref('records')
           .child(_selectedChannel!.channelId)
           .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(
-              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
-          .putFile(File(_filePath))
+          .child(_encryptedFilePath.substring(
+              _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+          .putFile(File(myEncryptedPath.path))
           .then((result) async {
         var url = await (result).ref.getDownloadURL();
         var uploadedUrl = url.toString();
 
         cloudNakedURL = uploadedUrl;
         notifyListeners();
-          });
+      });
     } on FirebaseException catch (e) {
       _isSuccessful = false;
       _resMessage =
@@ -536,7 +468,7 @@ class ChannelProvider extends ChangeNotifier {
         await addMessage(
           _selectedChannel!.channelId,
           Message(
-              record: encryptData(dataToEncrypt: cloudNakedURL, encryptionKey: _firebaseAuth.currentUser!.uid),
+              record: cloudNakedURL,
               duration: 10, //TODO  replace this with the real recorded duration
               sendBy: user,
               time: int.parse(_recordTime),
@@ -544,10 +476,47 @@ class ChannelProvider extends ChangeNotifier {
         );
         print("uploaded");
       }
+
       _isUploading = false;
       notifyListeners();
-
     }
+  }
+
+  Future downloadEncryptedFile(
+      {required String url}) async {
+    if (url != '') {
+      var file = await DefaultCacheManager().putFile(url, myEncryptedPath.readAsBytesSync(),
+          fileExtension: 'bin',
+          maxAge: const Duration(seconds: 1),
+          eTag: 'record');
+      return file;
+    } else {
+      print("EMPTY PATH");
+    }
+  }
+
+  encryptFile() async {
+    FileCryptor fileCryptor = FileCryptor(
+      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      iv: 16,
+      dir: _filePath,
+    );
+    File encryptedFile = await fileCryptor.encrypt(
+        inputFile: _filePath, outputFile: _encryptedFilePath);
+    myEncryptedPath = encryptedFile.absolute;
+    notifyListeners();
+    return encryptedFile.absolute;
+  }
+
+  decryptFile({required encryptedFile}) async {
+    FileCryptor fileCryptor = FileCryptor(
+      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      iv: 16,
+      dir: _filePath,
+    );
+    File decryptedFile = await fileCryptor.decrypt(
+        inputFile: encryptedFile, outputFile: filePath);
+    return decryptedFile.absolute;
   }
 
   Future<void> updateLastMessageInfo(
@@ -594,17 +563,5 @@ class ChannelProvider extends ChangeNotifier {
     _resMessage = "";
     // _isLoading = false;
     notifyListeners();
-  }
-
-  encryptData({required String dataToEncrypt, required String encryptionKey}) {
-    var encrypted = Encryptor.encrypt(encryptionKey, dataToEncrypt);
-    // print(encrypted);
-    return encrypted;
-  }
-
-  decryptData({required String encryptedData, required String encryptionKey}) {
-    var decrypted = Encryptor.decrypt(encryptionKey, encryptedData);
-    //print(decrypted);
-    return decrypted;
   }
 }

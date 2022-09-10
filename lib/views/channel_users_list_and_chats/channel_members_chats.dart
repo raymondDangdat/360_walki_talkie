@@ -5,11 +5,11 @@ import 'dart:io';
 import 'package:audio_session/audio_session.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:encryptor/encryptor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -17,10 +17,10 @@ import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:record_mp3/record_mp3.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
+import 'package:walkie_talkie_360/service/concretes/audio_player_adapter.dart';
 import 'package:walkie_talkie_360/views/chat_display_view.dart';
 import 'package:walkie_talkie_360/views/nav_screen/chats/chat_view.dart';
 
@@ -154,11 +154,6 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats> {
   //   });
   // }
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   // StreamBuilder(
   // stream: FirebaseFirestore.instance
   //     .collection('channelRoom')
@@ -251,22 +246,40 @@ class _AudioStreamingState extends State<AudioStreaming> {
                 return const Text("Loading");
               }
 
-              snapshot.data!.docs.map((DocumentSnapshot document) {
+              snapshot.data!.docs.map((DocumentSnapshot document) async {
+                const key = 'customCacheKey';
+                CacheManager instance = CacheManager(
+                  Config(
+                    key,
+                    stalePeriod: const Duration(milliseconds: 10),
+                    maxNrOfCacheObjects: 0,
+                    fileService: HttpFileService(),
+                  ),
+                );
                 if (document.exists) {
                   Map<String, dynamic> data =
                       document.data() as Map<String, dynamic>;
-                  play() async {
-                    final player = AudioPlayer();
-                    final decryptedLink = widget.channelProvider.decryptData(
-                        encryptedData: data['record'],
-                        encryptionKey:
-                            widget.authenticationProvider.userInfo.userID);
-                    await player.play(decryptedLink);
-                  }
-                  play(); //Calling the player
+
+                  widget.channelProvider
+                      .downloadEncryptedFile(
+                          url: data['record'])
+                      .then((value) {
+                    widget.channelProvider
+                        .decryptFile(encryptedFile: value.path)
+                        .then((result) async {
+                      try {
+                        final player = AudioPlayer();
+                        print(result.path);
+                        await player.play(UrlSource(result.path));
+                      } catch (e) {
+                        if (kDebugMode) {
+                          print(e.toString());
+                        }
+                      }
+                    });
+                  });
                 }
               }).toList();
-
               return const SizedBox();
             });
   }

@@ -24,9 +24,6 @@ dependencies:
   intl: ^0.17.0
   onboarding: ^3.1.0
 
-  record_mp3: ^3.0.0
-  audioplayers: ^0.20.1
-  just_audio: ^0.9.28
   path:
   permission_handler: ^10.0.0
   path_provider: ^2.0.11
@@ -52,14 +49,15 @@ dependencies:
   get: ^4.3.8
 
   provider: ^6.0.3
+  file_cryptor: ^0.0.3
+  flutter_cache_manager: ^3.3.0
   flutter_sound: ^9.2.13
   audio_session: ^0.1.10
-  encryptor: ^0.0.1
+  just_audio: ^0.9.28
+  audioplayers: ^1.0.1
 
 
   http:
-
-
   sizer: ^2.0.15
 
 
