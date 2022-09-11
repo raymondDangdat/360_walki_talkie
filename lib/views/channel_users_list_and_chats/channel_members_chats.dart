@@ -24,6 +24,7 @@ import 'package:walkie_talkie_360/service/concretes/audio_player_adapter.dart';
 import 'package:walkie_talkie_360/views/chat_display_view.dart';
 import 'package:walkie_talkie_360/views/nav_screen/chats/chat_view.dart';
 
+import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
 import '../../resources/image_manager.dart';
@@ -32,6 +33,8 @@ import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
+
+import '../create_brand_new_channel/models/user_channel_model.dart';
 
 const theSource = AudioSource.microphone;
 
@@ -226,13 +229,24 @@ class AudioStreaming extends StatefulWidget {
 class _AudioStreamingState extends State<AudioStreaming> {
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
         .collection('channelRoom')
         .doc(widget.channelProvider.selectedChannel.channelId)
-        .collection('chats')
-        .orderBy('timeStamp', descending: false)
-        .limitToLast(1)
+        .collection('chats').where("sendBy", isNotEqualTo: authProvider.userInfo.userName)
         .snapshots();
+
+
+
+
+
+    // final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
+    //     .collection('channelRoom')
+    //     .doc(widget.channelProvider.selectedChannel.channelId)
+    //     .collection('chats').where("sendBy", isNotEqualTo: authProvider.userInfo.email)
+    //     .orderBy('timeStamp', descending: false)
+    //     .limitToLast(1)
+    //     .snapshots();
 
     return widget.channelProvider.isRecording
         ? const SizedBox()
@@ -246,40 +260,84 @@ class _AudioStreamingState extends State<AudioStreaming> {
                 return const Text("Loading");
               }
 
-              snapshot.data!.docs.map((DocumentSnapshot document) async {
-                const key = 'customCacheKey';
-                CacheManager instance = CacheManager(
-                  Config(
-                    key,
-                    stalePeriod: const Duration(milliseconds: 10),
-                    maxNrOfCacheObjects: 0,
-                    fileService: HttpFileService(),
-                  ),
-                );
-                if (document.exists) {
-                  Map<String, dynamic> data =
-                      document.data() as Map<String, dynamic>;
+              final records = snapshot.data!.docs.map((doc) => ChatRecordsModel.fromSnapshot(doc)).toList();
 
-                  widget.channelProvider
-                      .downloadEncryptedFile(
-                          url: data['record'])
-                      .then((value) {
-                    widget.channelProvider
-                        .decryptFile(encryptedFile: value.path)
-                        .then((result) async {
-                      try {
-                        final player = AudioPlayer();
-                        print(result.path);
-                        await player.play(UrlSource(result.path));
-                      } catch (e) {
-                        if (kDebugMode) {
-                          print(e.toString());
-                        }
-                      }
-                    });
-                  });
-                }
-              }).toList();
+              print("Last unsorted record ${records[records.length -1].record}");
+              print("Last unsorted sender ${records[records.length -1].sendBy}");
+
+              // records.sort((a,b) => a.timeStamp..microsecondsSinceEpoch.compareTo(b.timeStamp..microsecondsSinceEpoch));
+
+              records.sort((a, b) {
+                int aDate = a.timeStamp.microsecondsSinceEpoch;
+                int bDate = b.timeStamp.microsecondsSinceEpoch;
+                return aDate.compareTo(bDate);
+              });
+
+              print("Last sorted record ${records[records.length -1].record}");
+              print("Last sorted sender ${records[records.length -1].sendBy}");
+              //
+              // for(int i = 0; i < records.length; i++){
+              //   print("The Sender is: ${records[i].sendBy}");
+              //   print("Time Stamp data type: ${records[i].timeStamp.runtimeType}");
+              //
+              // }
+
+
+              widget.channelProvider
+                  .downloadEncryptedFile(
+                  url: records[records.length -1].record)
+                  .then((value) {
+                widget.channelProvider
+                    .decryptFile(encryptedFile: value.path)
+                    .then((result) async {
+                  try {
+                    final player = AudioPlayer();
+                    print(result.path);
+                    await player.play(UrlSource(result.path));
+                  } catch (e) {
+                    if (kDebugMode) {
+                      print(e.toString());
+                    }
+                  }
+                });
+              });
+
+
+
+              // snapshot.data!.docs.map((DocumentSnapshot document) async {
+              //   const key = 'customCacheKey';
+              //   CacheManager instance = CacheManager(
+              //     Config(
+              //       key,
+              //       stalePeriod: const Duration(milliseconds: 10),
+              //       maxNrOfCacheObjects: 0,
+              //       fileService: HttpFileService(),
+              //     ),
+              //   );
+              //   if (document.exists) {
+              //     Map<String, dynamic> data =
+              //         document.data() as Map<String, dynamic>;
+              //
+              //     widget.channelProvider
+              //         .downloadEncryptedFile(
+              //             url: data['record'])
+              //         .then((value) {
+              //       widget.channelProvider
+              //           .decryptFile(encryptedFile: value.path)
+              //           .then((result) async {
+              //         try {
+              //           final player = AudioPlayer();
+              //           print(result.path);
+              //           await player.play(UrlSource(result.path));
+              //         } catch (e) {
+              //           if (kDebugMode) {
+              //             print(e.toString());
+              //           }
+              //         }
+              //       });
+              //     });
+              //   }
+              // }).toList();
               return const SizedBox();
             });
   }
