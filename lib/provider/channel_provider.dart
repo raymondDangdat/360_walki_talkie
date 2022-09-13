@@ -93,9 +93,9 @@ class ChannelProvider extends ChangeNotifier {
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
   late Task uploadTask;
-  late File myEncryptedPath;
+  //late File myEncryptedPath;
   late File myDecryptedPath;
-  late String cloudNakedURL;
+   String cloudNakedURL = '';
 
   final storageRef = FirebaseStorage.instance.ref();
 
@@ -389,12 +389,11 @@ class ChannelProvider extends ChangeNotifier {
     _mRecorderInitialised = true;
     _isRecording = true;
     notifyListeners();
-    Directory directory = await getApplicationDocumentsDirectory();
 
+    Directory directory = await getApplicationDocumentsDirectory();
     _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
     String filepath = directory.path + '/' + _recordTime + '.mp4';
-    String encryptedFilePath = directory.path + '/' + _recordTime + '.aes';
-    String decryptedFilePath = directory.path + '/' + _recordTime + '.aes';
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
 
     _encryptedFilePath = encryptedFilePath;
 
@@ -425,98 +424,99 @@ class ChannelProvider extends ChangeNotifier {
     _isRecording = false;
     notifyListeners();
 
-    encryptFile().then((result) {
-      myEncryptedPath = result;
-      notifyListeners();
-    });
+    encryptFile().then((result)  async{
+      try {
+        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+        _isSuccessful = true;
+        await firebaseStorage
+            .ref('records')
+            .child(_selectedChannel!.channelId)
+            .child(FirebaseAuth.instance.currentUser!.uid)
+            .child(_encryptedFilePath.substring(
+            _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+            .putFile(File(result.path))
+            .then((result) async {
+          var url = await (result).ref.getDownloadURL();
+          var uploadedUrl = url.toString();
+          notifyListeners();
+          cloudNakedURL = uploadedUrl;
+          notifyListeners();
+        });
+      } on FirebaseException catch (e) {
+        _isSuccessful = false;
+        _resMessage =
+        "Could not send!', 'Error occurred while sending message, please check your connection.";
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      } finally {
+        if (_isSuccessful) {
+          Map<String, dynamic> _lastMessageInfo = {
+            'lastMessageTime': int.parse(_recordTime),
+            'lastMessageDuration':
+            10, //TODO  replace this with the real recorded duration
+          };
+          await updateLastMessageInfo(
+              _lastMessageInfo, _selectedChannel!.channelId);
 
-    late String encryptedURL;
-    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-    try {
-      _isSuccessful = true;
-      await firebaseStorage
-          .ref('records')
-          .child(_selectedChannel!.channelId)
-          .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(_encryptedFilePath.substring(
-              _filePath.lastIndexOf('/'), _encryptedFilePath.length))
-          .putFile(File(myEncryptedPath.path))
-          .then((result) async {
-        var url = await (result).ref.getDownloadURL();
-        var uploadedUrl = url.toString();
-
-        cloudNakedURL = uploadedUrl;
-        notifyListeners();
-      });
-    } on FirebaseException catch (e) {
-      _isSuccessful = false;
-      _resMessage =
-          "Could not send!', 'Error occurred while sending message, please check your connection.";
-      if (kDebugMode) {
-        print(e.toString());
-      }
-    } finally {
-      if (_isSuccessful) {
-        Map<String, dynamic> _lastMessageInfo = {
-          'lastMessageTime': int.parse(_recordTime),
-          'lastMessageDuration':
-              10, //TODO  replace this with the real recorded duration
-        };
-        await updateLastMessageInfo(
-            _lastMessageInfo, _selectedChannel!.channelId);
-
-        await addMessage(
-          _selectedChannel!.channelId,
-          Message(
+          await addMessage(
+              _selectedChannel!.channelId,
+              Message(
               record: cloudNakedURL,
               duration: 10, //TODO  replace this with the real recorded duration
               sendBy: user,
               time: int.parse(_recordTime),
-              timeStamp: DateTime.now()),
-        );
-        print("uploaded");
+      timeStamp: DateTime.now()),
+      );
+      print("uploaded");
       }
-
       _isUploading = false;
       notifyListeners();
     }
+
+
+
+    });
+
+
+
   }
 
-  Future downloadEncryptedFile(
-      {required String url}) async {
-    if (url != '') {
-      var file = await DefaultCacheManager().putFile(url, myEncryptedPath.readAsBytesSync(),
-          fileExtension: 'bin',
-          maxAge: const Duration(seconds: 1),
-          eTag: 'record');
-      return file;
-    } else {
-      print("EMPTY PATH");
-    }
+  Future downloadEncryptedFile({required String url}) async {
+    return await DefaultCacheManager().downloadFile(url);
   }
 
   encryptFile() async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
+
+    _encryptedFilePath = encryptedFilePath;
+
     FileCryptor fileCryptor = FileCryptor(
-      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      key: encryptionKey,
       iv: 16,
-      dir: _filePath,
+      dir: _encryptedFilePath,
     );
     File encryptedFile = await fileCryptor.encrypt(
         inputFile: _filePath, outputFile: _encryptedFilePath);
-    myEncryptedPath = encryptedFile.absolute;
-    notifyListeners();
     return encryptedFile.absolute;
   }
 
   decryptFile({required encryptedFile}) async {
+    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+    Directory directory = await getApplicationDocumentsDirectory();
+    String decryptedFilePath = directory.path + '/' + _recordTime + '.mp4';
+
+    _decryptedFilePath = decryptedFilePath;
+
     FileCryptor fileCryptor = FileCryptor(
-      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      key: encryptionKey,
       iv: 16,
-      dir: _filePath,
+      dir: _decryptedFilePath,
     );
     File decryptedFile = await fileCryptor.decrypt(
-        inputFile: encryptedFile, outputFile: filePath);
-    return decryptedFile.absolute;
+        inputFile: encryptedFile, outputFile: _decryptedFilePath);
+    return decryptedFile.absolute.path;
   }
 
   Future<void> updateLastMessageInfo(

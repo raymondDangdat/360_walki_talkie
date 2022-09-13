@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:audio_session/audio_session.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +10,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get_utils/get_utils.dart';
 import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,6 +22,7 @@ import 'package:walkie_talkie_360/service/concretes/audio_player_adapter.dart';
 import 'package:walkie_talkie_360/views/chat_display_view.dart';
 import 'package:walkie_talkie_360/views/nav_screen/chats/chat_view.dart';
 
+import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
 import '../../resources/image_manager.dart';
@@ -32,6 +31,8 @@ import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
+
+import '../create_brand_new_channel/models/user_channel_model.dart';
 
 const theSource = AudioSource.microphone;
 
@@ -226,15 +227,15 @@ class AudioStreaming extends StatefulWidget {
 class _AudioStreamingState extends State<AudioStreaming> {
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
         .collection('channelRoom')
         .doc(widget.channelProvider.selectedChannel.channelId)
         .collection('chats')
-        .orderBy('timeStamp', descending: false)
-        .limitToLast(1)
+        .where("sendBy", isNotEqualTo: authProvider.userInfo.userName)
         .snapshots();
 
-    return widget.channelProvider.isRecording
+    return widget.channelProvider.isRecording == true
         ? const SizedBox()
         : StreamBuilder(
             stream: _recordingStream,
@@ -246,40 +247,86 @@ class _AudioStreamingState extends State<AudioStreaming> {
                 return const Text("Loading");
               }
 
-              snapshot.data!.docs.map((DocumentSnapshot document) async {
-                const key = 'customCacheKey';
-                CacheManager instance = CacheManager(
-                  Config(
-                    key,
-                    stalePeriod: const Duration(milliseconds: 10),
-                    maxNrOfCacheObjects: 0,
-                    fileService: HttpFileService(),
-                  ),
-                );
-                if (document.exists) {
-                  Map<String, dynamic> data =
-                      document.data() as Map<String, dynamic>;
-
-                  widget.channelProvider
-                      .downloadEncryptedFile(
-                          url: data['record'])
-                      .then((value) {
-                    widget.channelProvider
-                        .decryptFile(encryptedFile: value.path)
-                        .then((result) async {
-                      try {
-                        final player = AudioPlayer();
-                        print(result.path);
-                        await player.play(UrlSource(result.path));
-                      } catch (e) {
-                        if (kDebugMode) {
-                          print(e.toString());
-                        }
-                      }
-                    });
-                  });
-                }
+              final records = snapshot.data!.docs.map((doc) {
+               if (doc.exists) {
+                 return ChatRecordsModel.fromSnapshot(doc);
+               }
               }).toList();
+              records.sort((a, b) {
+                int aDate = a.timeStamp.microsecondsSinceEpoch;
+                int bDate = b.timeStamp.microsecondsSinceEpoch;
+                return aDate.compareTo(bDate);
+              });
+
+              if (records[records.length - 1].record == null ||
+                  records[records.length - 1].record == '') {
+                if (kDebugMode) {
+                  print("The path is empty");
+                }
+              } else {
+                widget.channelProvider
+                    .downloadEncryptedFile(
+                        url: records[records.length - 1].record)
+                    .then((value) {
+                  widget.channelProvider
+                      .decryptFile(encryptedFile: value.file.path)
+                      .then((result) async {
+                    final player = AudioPlayer();
+                    await player.play(UrlSource(result));
+                    try {
+                      FirebaseFirestore.instance
+                          .collection('channelRoom')
+                          .doc(widget.channelProvider.selectedChannel.channelId)
+                          .collection('chats')
+                          .doc(records[records.length - 1].id)
+                          .delete();
+                    } on FirebaseException catch (e) {
+                      if (kDebugMode) {
+                        print(e);
+                      }
+                    } finally {
+                      if (kDebugMode) {
+                        print("Deleted Successfully");
+                      }
+                    }
+                  });
+                });
+              }
+
+              // snapshot.data!.docs.map((DocumentSnapshot document) async {
+              //   const key = 'customCacheKey';
+              //   CacheManager instance = CacheManager(
+              //     Config(
+              //       key,
+              //       stalePeriod: const Duration(milliseconds: 10),
+              //       maxNrOfCacheObjects: 0,
+              //       fileService: HttpFileService(),
+              //     ),
+              //   );
+              //   if (document.exists) {
+              //     Map<String, dynamic> data =
+              //         document.data() as Map<String, dynamic>;
+              //
+              //     widget.channelProvider
+              //         .downloadEncryptedFile(
+              //             url: data['record'])
+              //         .then((value) {
+              //       widget.channelProvider
+              //           .decryptFile(encryptedFile: value.path)
+              //           .then((result) async {
+              //         try {
+              //           final player = AudioPlayer();
+              //           print(result.path);
+              //           await player.play(UrlSource(result.path));
+              //         } catch (e) {
+              //           if (kDebugMode) {
+              //             print(e.toString());
+              //           }
+              //         }
+              //       });
+              //     });
+              //   }
+              // }).toList();
               return const SizedBox();
             });
   }
@@ -304,7 +351,6 @@ class ChannelMembersChatBody extends StatelessWidget {
           const NavScreensHeader(),
 
           SizedBox(height: AppSize.s52.h),
-
           CustomTextWithLineHeight(
             text: AppStrings.userName,
             textColor: ColorManager.textColor,
