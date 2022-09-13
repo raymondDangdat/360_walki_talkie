@@ -93,9 +93,8 @@ class ChannelProvider extends ChangeNotifier {
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
   late Task uploadTask;
-  //late File myEncryptedPath;
   late File myDecryptedPath;
-   String cloudNakedURL = '';
+  String cloudNakedURL = '';
 
   final storageRef = FirebaseStorage.instance.ref();
 
@@ -412,19 +411,19 @@ class ChannelProvider extends ChangeNotifier {
     await _mRecorder?.stopRecorder();
     notifyListeners();
     _isUploading = false;
+    _isRecording = false;
     notifyListeners();
     return _filePath;
   }
 
   sendSound({required String user}) async {
     if (_mRecorder == null) return;
-
     //stop recording
     await _mRecorder!.stopRecorder();
     _isRecording = false;
     notifyListeners();
 
-    encryptFile().then((result)  async{
+    encryptFile().then((result) async {
       try {
         FirebaseStorage firebaseStorage = FirebaseStorage.instance;
         _isSuccessful = true;
@@ -433,7 +432,7 @@ class ChannelProvider extends ChangeNotifier {
             .child(_selectedChannel!.channelId)
             .child(FirebaseAuth.instance.currentUser!.uid)
             .child(_encryptedFilePath.substring(
-            _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
             .putFile(File(result.path))
             .then((result) async {
           var url = await (result).ref.getDownloadURL();
@@ -445,7 +444,7 @@ class ChannelProvider extends ChangeNotifier {
       } on FirebaseException catch (e) {
         _isSuccessful = false;
         _resMessage =
-        "Could not send!', 'Error occurred while sending message, please check your connection.";
+            "Could not send!', 'Error occurred while sending message, please check your connection.";
         if (kDebugMode) {
           print(e.toString());
         }
@@ -453,33 +452,25 @@ class ChannelProvider extends ChangeNotifier {
         if (_isSuccessful) {
           Map<String, dynamic> _lastMessageInfo = {
             'lastMessageTime': int.parse(_recordTime),
-            'lastMessageDuration':
-            10, //TODO  replace this with the real recorded duration
           };
           await updateLastMessageInfo(
               _lastMessageInfo, _selectedChannel!.channelId);
 
           await addMessage(
-              _selectedChannel!.channelId,
-              Message(
-              record: cloudNakedURL,
-              duration: 10, //TODO  replace this with the real recorded duration
-              sendBy: user,
-              time: int.parse(_recordTime),
-      timeStamp: DateTime.now()),
-      );
-      print("uploaded");
+            _selectedChannel!.channelId,
+            Message(
+                isPushed: false,
+                record: cloudNakedURL,
+                sendBy: user,
+                time: int.parse(_recordTime),
+                timeStamp: DateTime.now()),
+          );
+          print("uploaded");
+        }
+        _isUploading = false;
+        notifyListeners();
       }
-      _isUploading = false;
-      notifyListeners();
-    }
-
-
-
     });
-
-
-
   }
 
   Future downloadEncryptedFile({required String url}) async {
@@ -517,6 +508,25 @@ class ChannelProvider extends ChangeNotifier {
     File decryptedFile = await fileCryptor.decrypt(
         inputFile: encryptedFile, outputFile: _decryptedFilePath);
     return decryptedFile.absolute.path;
+  }
+
+  deletePlayedSound({required String currentDocId}) {
+    try {
+      FirebaseFirestore.instance
+          .collection('channelRoom')
+          .doc(selectedChannel.channelId)
+          .collection('chats')
+          .doc(currentDocId)
+          .delete();
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } finally {
+      if (kDebugMode) {
+        print("Deleted Successfully");
+      }
+    }
   }
 
   Future<void> updateLastMessageInfo(

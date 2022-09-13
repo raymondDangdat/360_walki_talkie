@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatRecordsModel {
   dynamic id;
-  dynamic duration;
+  dynamic isPushed;
   dynamic record;
   dynamic sendBy;
   dynamic time;
@@ -10,7 +10,7 @@ class ChatRecordsModel {
 
   ChatRecordsModel({
     required this.id,
-    required this.duration,
+    required this.isPushed,
     required this.record,
     required this.sendBy,
     required this.time,
@@ -20,7 +20,7 @@ class ChatRecordsModel {
   factory ChatRecordsModel.fromSnapshot(DocumentSnapshot doc) {
     return ChatRecordsModel(
         id: doc.id,
-        duration: doc['duration'],
+        isPushed: doc['isPushed'],
         record: doc['record'],
         sendBy: doc['sendBy'],
         time: doc['time'],
