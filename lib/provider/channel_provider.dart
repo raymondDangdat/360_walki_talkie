@@ -229,7 +229,9 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error creating channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
     }
 
     return channelCreated;
@@ -262,7 +264,9 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error adding channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error adding channel: ${e.toString()}");
+      }
     }
 
     return channelCreated;
@@ -304,6 +308,8 @@ class ChannelProvider extends ChangeNotifier {
         .collection("members")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
+      'isPushed': false,
+      'isOnline': false,
       'userId': _firebaseAuth.currentUser!.uid,
       'username': auth.userInfo.userName,
       'userFullName': auth.userInfo.fullName,
@@ -323,9 +329,15 @@ class ChannelProvider extends ChangeNotifier {
     _userChannelsConnected =
         _userChannels.where((channel) => channel.isCreated == false).toList();
 
-    print("Length of channels: ${_userChannels.length}");
-    print("Length of created channels: ${_userChannelCreated.length}");
-    print("Length of connected channels: ${_userChannelsConnected.length}");
+    if (kDebugMode) {
+      print("Length of channels: ${_userChannels.length}");
+    }
+    if (kDebugMode) {
+      print("Length of created channels: ${_userChannelCreated.length}");
+    }
+    if (kDebugMode) {
+      print("Length of connected channels: ${_userChannelsConnected.length}");
+    }
 
     notifyListeners();
   }
@@ -343,7 +355,12 @@ class ChannelProvider extends ChangeNotifier {
       _channelMembers = querySnapshot.docs
           .map((doc) => ChannelMembersModel.fromSnapshot(doc))
           .toList();
-      print("Length of channels: ${_channelMembers.length}");
+
+
+      if (kDebugMode) {
+        print("Length of channels: ${_channelMembers.length}");
+
+      }
 
       Navigator.pop(context);
       _isLoading = false;
@@ -354,7 +371,9 @@ class ChannelProvider extends ChangeNotifier {
       _isLoading = false;
       Navigator.pop(context);
       notifyListeners();
-      print("Error getting members: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error getting members: ${e.toString()}");
+      }
     }
   }
 
@@ -459,13 +478,14 @@ class ChannelProvider extends ChangeNotifier {
           await addMessage(
             _selectedChannel!.channelId,
             Message(
-                isPushed: false,
                 record: cloudNakedURL,
                 sendBy: user,
                 time: int.parse(_recordTime),
                 timeStamp: DateTime.now()),
           );
-          print("uploaded");
+          if (kDebugMode) {
+            print("Uploaded Successfully");
+          }
         }
         _isUploading = false;
         notifyListeners();
@@ -558,7 +578,9 @@ class ChannelProvider extends ChangeNotifier {
         debugPrint('Name: $userName');
       });
     } catch (e) {
-      // Get.snackbar('Could get data!', 'Please check your internet connection.');
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 
