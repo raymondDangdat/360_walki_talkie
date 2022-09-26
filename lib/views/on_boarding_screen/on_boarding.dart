@@ -168,7 +168,10 @@ class PageViewOnBoarding extends StatelessWidget {
                         ColorManager.textColor,),
 
                         SizedBox(height: AppSize.s50.h,),
-                        WalkieButton(context: context, onTap: ()async{
+                        WalkieButton(
+                            height: AppSize.s51.h,
+                            width: AppSize.s255.w,
+                            context: context, onTap: ()async{
                           final prefs = await SharedPreferences.getInstance();
                           prefs.setBool(showOnBoarding, false);
                           openNewGetStartedScreen(context);

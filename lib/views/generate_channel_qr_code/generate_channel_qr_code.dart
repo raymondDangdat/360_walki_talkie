@@ -128,7 +128,11 @@ class _GenerateChannelQrCodeState extends State<GenerateChannelQrCode> {
 
             SizedBox(height: AppSize.s26.h,),
             
-            WalkieButton(context: context, onTap: (){}, title: AppStrings.createQrCode)
+            WalkieButton(
+
+                height: AppSize.s51.h,
+                width: AppSize.s255.w,
+                context: context, onTap: (){}, title: AppStrings.createQrCode)
 
           ],
         ),

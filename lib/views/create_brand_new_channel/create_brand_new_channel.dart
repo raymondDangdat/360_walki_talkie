@@ -365,7 +365,11 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                               channelProvider.clear();
                             }
                           });
-                          return WalkieButton(context: context, onTap: ()async{
+                          return WalkieButton(
+
+                              height: AppSize.s51.h,
+                              width: AppSize.s255.w,
+                              context: context, onTap: ()async{
                             final isCreated = await channelProvider.createBrandNewChannel(
                                 context, channelNameController.text.trim(),
                                 selectedChannelType!.channelType,

@@ -63,7 +63,10 @@ class GetStartedScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         SizedBox(height: AppSize.s17.h,),
-                        WalkieButton(context: context, onTap: (){
+                        WalkieButton(
+                            height: AppSize.s51.h,
+                            width: AppSize.s255.w,
+                            context: context, onTap: (){
                           openChannelTypeScreen(context);
                         }, title: AppStrings.createChannel),
                         SizedBox(height: AppSize.s16.h,),

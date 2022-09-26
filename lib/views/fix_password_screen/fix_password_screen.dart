@@ -63,7 +63,11 @@ class _FixPasswordScreenState extends State<FixPasswordScreen> {
                             auth.clear();
                           }
                         });
-                      return WalkieButton(context: context, onTap: (){
+                      return WalkieButton(
+
+                          height: AppSize.s51.h,
+                          width: AppSize.s255.w,
+                          context: context, onTap: (){
                         if(emailController.text.trim().isNotEmpty && emailController.text.trim().length > 3){
                           auth.sentPasswordResetEmail(context: context, email: emailController.text.trim());
                         }

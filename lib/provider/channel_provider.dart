@@ -237,6 +237,66 @@ class ChannelProvider extends ChangeNotifier {
     return channelCreated;
   }
 
+  Future<bool> createBrandNewSubChannel(
+    BuildContext context,
+    String channelName,
+    String channelType,
+    String channelPassword,
+    String channelDescription,
+    String channelCategory,
+    String imageStatus,
+    bool allowLocationSharing,
+    bool allowUserTalkToAdmin,
+    bool moderatorCanInterrupt,
+    AuthenticationProvider auth,
+  ) async {
+    bool channelCreated = false;
+    _isLoading = true;
+    final subChannelId = randomAlphaNumeric(10);
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => const LoadingIndicator());
+    notifyListeners();
+    try {
+      await channelsCollection
+          .doc(selectedChannel.channelId)
+          .collection('subChannel')
+          .doc(subChannelId)
+          .set({
+        'channelName': channelName,
+        'channelType': channelType,
+        'channelPassword': channelPassword,
+        'channelDescription': channelDescription,
+        'channelCategory': channelCategory,
+        'imageStatus': imageStatus,
+        'allowLocationSharing': allowLocationSharing,
+        'allowUserTalkToAdmin': allowUserTalkToAdmin,
+        'moderatorCanInterrupt': moderatorCanInterrupt,
+        "creatorId": FirebaseAuth.instance.currentUser!.uid,
+      });
+
+      await saveSubChannelInfoToUser(subChannelId, channelName, true);
+      await saveMemberInSubChannel(subChannelId, channelName, true, auth);
+      await saveSubChannelName(channelName, subChannelId);
+      channelCreated = true;
+    } on SocketException catch (_) {
+      _isLoading = false;
+      _resMessage = "Internet connection is not available";
+      notifyListeners();
+      Navigator.pop(context);
+    } catch (e) {
+      _isLoading = false;
+      _resMessage = e.toString();
+      notifyListeners();
+      Navigator.pop(context);
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
+    }
+    return channelCreated;
+  }
+
   Future<bool> createChannelFromChannelName(
     BuildContext context,
     String channelName,
@@ -295,10 +355,34 @@ class ChannelProvider extends ChangeNotifier {
     });
   }
 
+  Future saveSubChannelInfoToUser(
+      String channelID, String channelName, bool isCreator) async {
+    return await userCollection
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection("channels")
+        .doc(selectedChannel.channelId)
+        .collection('subChannel')
+        .doc(channelID)
+        .set({
+      'userId': _firebaseAuth.currentUser!.uid,
+      'channelId': channelID,
+      'channelName': channelName,
+      "isCreated": isCreator,
+    });
+  }
+
   Future saveChannelName(String channelName, String channelId) async {
     return await channelNamesCollection
         .doc(channelName.toLowerCase())
         .set({'channelName': channelName, 'channelId': channelId});
+  }
+
+  Future saveSubChannelName(String childChannelName, String channelId) async {
+    return await channelNamesCollection
+        .doc(selectedChannel.channelName.toLowerCase())
+        .collection('subChannel')
+        .doc(channelId)
+        .set({'channelName': childChannelName, 'channelId': channelId});
   }
 
   Future saveMemberInChannel(String channelID, String channelName,
@@ -306,6 +390,24 @@ class ChannelProvider extends ChangeNotifier {
     return await channelsCollection
         .doc(channelID)
         .collection("members")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      'isPushed': false,
+      'isOnline': false,
+      'userId': _firebaseAuth.currentUser!.uid,
+      'username': auth.userInfo.userName,
+      'userFullName': auth.userInfo.fullName,
+      "isAdmin": isCreator,
+    });
+  }
+
+  Future saveMemberInSubChannel(String channelID, String channelName,
+      bool isCreator, AuthenticationProvider auth) async {
+    return await channelsCollection
+        .doc(selectedChannel.channelId)
+        .collection('subChannel')
+        .doc(channelID)
+        .collection('members')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
       'isPushed': false,
@@ -356,10 +458,8 @@ class ChannelProvider extends ChangeNotifier {
           .map((doc) => ChannelMembersModel.fromSnapshot(doc))
           .toList();
 
-
       if (kDebugMode) {
         print("Length of channels: ${_channelMembers.length}");
-
       }
 
       Navigator.pop(context);
