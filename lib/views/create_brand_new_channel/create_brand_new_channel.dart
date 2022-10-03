@@ -366,7 +366,6 @@ class _CreateBrandNewChannelState extends State<CreateBrandNewChannel> {
                             }
                           });
                           return WalkieButton(
-
                               height: AppSize.s51.h,
                               width: AppSize.s255.w,
                               context: context, onTap: ()async{

@@ -11,6 +11,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:walkie_talkie_360/models/channel_model.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
@@ -35,9 +36,11 @@ class ChannelProvider extends ChangeNotifier {
   UserChannelModel? _selectedChannel;
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
+  final Map<String, dynamic> _chosenChannel = {};
+
+  Map<String, dynamic> get chosenChannel => _chosenChannel;
 
   List<ChannelMembersModel> _channelMembers = [];
-
   bool _isRecording = false;
   bool get isRecording => _isRecording;
 
