@@ -41,15 +41,67 @@ class ChannelMembersChats extends StatefulWidget {
   State<ChannelMembersChats> createState() => _ChannelMembersChatsState();
 }
 
-class _ChannelMembersChatsState extends State<ChannelMembersChats> {
+class _ChannelMembersChatsState extends State<ChannelMembersChats>
+    with WidgetsBindingObserver {
   bool isPlayingMsg = false, isRecording = false, isSending = false;
   String recordFilePath = "";
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    FirebaseFirestore.instance
+        .collection('channels')
+        .doc(context.watch<ChannelProvider>().selectedChannel.channelId)
+        .collection("members")
+        .doc(context.watch<AuthenticationProvider>().userInfo.userID)
+        .update({'isOnline': false});
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        //Execute the code here when user come back the app.
+        FirebaseFirestore.instance
+            .collection('channels')
+            .doc(Provider.of<ChannelProvider>(context, listen: false)
+                .selectedChannel
+                .channelId)
+            .collection("members")
+            .doc(Provider.of<AuthenticationProvider>(context, listen: false)
+                .userInfo
+                .userID)
+            .update({'isOnline': true});
+        break;
+      case AppLifecycleState.paused:
+        //Execute the code the when user leave the app
+        FirebaseFirestore.instance
+            .collection('channels')
+            .doc(Provider.of<ChannelProvider>(context, listen: false)
+                .selectedChannel
+                .channelId)
+            .collection("members")
+            .doc(Provider.of<AuthenticationProvider>(context, listen: false)
+                .userInfo
+                .userID)
+            .update({'isOnline': false});
+        break;
+      default:
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
     final channelProvider = context.watch<ChannelProvider>();
-
     return Scaffold(
         backgroundColor: ColorManager.bgColor,
         body: Stack(children: [
@@ -313,16 +365,5 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    FirebaseFirestore.instance
-        .collection('channels')
-        .doc(widget.channelProvider.selectedChannel.channelId)
-        .collection("members")
-        .doc(widget.authProvider.userInfo.userID)
-        .update({'isOnline': false});
-    super.dispose();
   }
 }
