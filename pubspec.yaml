@@ -55,6 +55,9 @@ dependencies:
   audio_session: ^0.1.10
   just_audio: ^0.9.28
   audioplayers: ^1.0.1
+  qr_flutter: ^4.0.0
+  share_plus: ^4.5.3
+  screenshot: ^1.2.3
 
 
   http:

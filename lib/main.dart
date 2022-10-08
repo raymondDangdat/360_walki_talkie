@@ -13,8 +13,6 @@ import 'resources/routes_manager.dart';
 import 'resources/theme_manager.dart';
 import 'package:provider/provider.dart';
 
-
-
 void main() async{
   SystemChrome.setSystemUIOverlayStyle( SystemUiOverlayStyle(
     systemNavigationBarColor: ColorManager.bgColor, // navigation bar color

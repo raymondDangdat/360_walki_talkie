@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
+import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
@@ -13,67 +14,69 @@ import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
 
-class JoinedChannelSuccessful extends StatelessWidget {
-  const JoinedChannelSuccessful({Key? key}) : super(key: key);
+class JoinedSubChannelSuccessful extends StatelessWidget {
+  const JoinedSubChannelSuccessful({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
+    final channelProvider = context.watch<ChannelProvider>();
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
-      body: SafeArea(child: SingleChildScrollView(
+      body: SafeArea(
+          child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: AppSize.s46.h,),
+            SizedBox(
+              height: AppSize.s46.h,
+            ),
             Container(
               height: AppSize.s54.h,
-              decoration: BoxDecoration(
-                  color: ColorManager.textColor
-              ),
+              decoration: BoxDecoration(color: ColorManager.textColor),
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  NavScreensHeader()
-                ],
+                children: const [NavScreensHeader()],
               ),
             ),
-
-            SizedBox(height: AppSize.s144.h,),
+            SizedBox(
+              height: AppSize.s144.h,
+            ),
             SvgPicture.asset(AppImages.checkedIcon),
-
-            SizedBox(height: AppSize.s19.h,),
-
+            SizedBox(
+              height: AppSize.s19.h,
+            ),
             CustomTextWithLineHeight(
-              text: AppStrings.youHaveBeenAdded,
-              textColor: ColorManager.primaryColor,),
-
+              text: AppStrings.youHaveCreated,
+              textColor: ColorManager.primaryColor,
+            ),
             CustomTextWithLineHeight(
               text: "[${authProvider.channelNameJoined}]",
               textColor: ColorManager.primaryColor,
               fontWeight: FontWeightManager.bold,
               fontSize: FontSize.s24,
             ),
-
             CustomTextWithLineHeight(
-              text: AppStrings.channelSuccessfully,
-              textColor: ColorManager.primaryColor,),
-
-            SizedBox(height: AppSize.s19.h,),
-
+              text: AppStrings.asASubChannel,
+              textColor: ColorManager.primaryColor,
+            ),
+            CustomTextWithLineHeight(
+                text: channelProvider.selectedChannel.channelName,
+                textColor: ColorManager.primaryColor),
+            SizedBox(
+              height: AppSize.s19.h,
+            ),
             WalkieButtonBordered(
                 context: context,
-                onTap: (){
+                onTap: () {
                   openNavScreen(context);
                 },
                 title: AppStrings.returnToDashboard,
                 textColor: ColorManager.primaryColor,
                 borderColor: ColorManager.primaryColor)
-
           ],
         ),
       )),
     );
   }
 }
-

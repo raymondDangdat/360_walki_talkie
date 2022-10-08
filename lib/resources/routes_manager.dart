@@ -8,6 +8,7 @@ import 'package:walkie_talkie_360/views/fix_password_screen/fix_password_screen.
 import 'package:walkie_talkie_360/views/generate_channel_qr_code/generate_channel_qr_code.dart';
 import 'package:walkie_talkie_360/views/how_it_works/how_it_works_screen.dart';
 import 'package:walkie_talkie_360/views/joined_channel_successfull/joined_channel_successful.dart';
+import 'package:walkie_talkie_360/views/joined_channel_successfull/joined_sub_channel_successful.dart';
 import 'package:walkie_talkie_360/views/nav_screen/nav_screen_view.dart';
 import 'package:walkie_talkie_360/views/new_get_started_screen/new_get_started_screen.dart';
 import 'package:walkie_talkie_360/views/profile/profile_screen.dart';
@@ -19,7 +20,6 @@ import '../views/login_screen/login_screen.dart';
 import '../views/on_boarding_screen/on_boarding.dart';
 import '../views/settings_view/settings_screen.dart';
 
-
 class Routes {
   static const initialRoute = "/";
   static const onBoarding = "/on_boarding";
@@ -30,6 +30,8 @@ class Routes {
   static const navScreenView = "/nav_screen";
   static const addByChannelName = "/add_by_channel_name";
   static const createBrandNewChannel = "/create_brand_new_channel";
+  static const createSubChannel = "/create_sub_channel";
+  static const completeSubChannel = "/complete_sub_channel";
   static const generateChannelQrCode = "/generate_qr_code";
   static const loginScreen = "/login_screen";
   static const fixPasswordScreen = "/fix_password_screen";
@@ -38,7 +40,7 @@ class Routes {
   static const channelMembersChats = "/channel_members_chats";
   static const settingsScreen = "/settings_screen";
   static const channelJoinedSuccessfully = "/channel_joined_successfully";
-
+  static const subChannelJoinedSuccessfully = "/sub_channel_joined_successfully";
 }
 
 class RouteGenerator {
@@ -62,6 +64,10 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const AddChannelByName());
       case Routes.createBrandNewChannel:
         return MaterialPageRoute(builder: (_) => const CreateBrandNewChannel());
+      case Routes.createSubChannel:
+        return MaterialPageRoute(builder: (_) => const CreateSubChannel());
+      case Routes.completeSubChannel:
+        return MaterialPageRoute(builder: (_) =>  const CompleteSubChannel());
       case Routes.generateChannelQrCode:
         return MaterialPageRoute(builder: (_) => const GenerateChannelQrCode());
       case Routes.loginScreen:
@@ -77,8 +83,17 @@ class RouteGenerator {
 
       case Routes.settingsScreen:
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
+
       case Routes.channelJoinedSuccessfully:
-        return MaterialPageRoute(builder: (_) => const JoinedChannelSuccessful());
+        return MaterialPageRoute(
+            builder: (_) => const JoinedChannelSuccessful());
+
+
+      case Routes.subChannelJoinedSuccessfully:
+        return MaterialPageRoute(
+            builder: (_) => const JoinedSubChannelSuccessful());
+
+
       default:
         return undefinedRoute();
     }

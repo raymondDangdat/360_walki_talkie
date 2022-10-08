@@ -11,6 +11,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:walkie_talkie_360/models/channel_model.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
@@ -35,9 +36,11 @@ class ChannelProvider extends ChangeNotifier {
   UserChannelModel? _selectedChannel;
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
+  final Map<String, dynamic> _chosenChannel = {};
+
+  Map<String, dynamic> get chosenChannel => _chosenChannel;
 
   List<ChannelMembersModel> _channelMembers = [];
-
   bool _isRecording = false;
   bool get isRecording => _isRecording;
 
@@ -93,9 +96,8 @@ class ChannelProvider extends ChangeNotifier {
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
   late Task uploadTask;
-  late File myEncryptedPath;
   late File myDecryptedPath;
-  late String cloudNakedURL;
+  String cloudNakedURL = '';
 
   final storageRef = FirebaseStorage.instance.ref();
 
@@ -230,9 +232,71 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error creating channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
     }
 
+    return channelCreated;
+  }
+
+  Future<bool> createBrandNewSubChannel(
+    BuildContext context,
+    String channelName,
+    String channelType,
+    String channelPassword,
+    String channelDescription,
+    String channelCategory,
+    String imageStatus,
+    bool allowLocationSharing,
+    bool allowUserTalkToAdmin,
+    bool moderatorCanInterrupt,
+    AuthenticationProvider auth,
+  ) async {
+    bool channelCreated = false;
+    _isLoading = true;
+    final subChannelId = randomAlphaNumeric(10);
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => const LoadingIndicator());
+    notifyListeners();
+    try {
+      await channelsCollection
+          .doc(selectedChannel.channelId)
+          .collection('subChannel')
+          .doc(subChannelId)
+          .set({
+        'channelName': channelName,
+        'channelType': channelType,
+        'channelPassword': channelPassword,
+        'channelDescription': channelDescription,
+        'channelCategory': channelCategory,
+        'imageStatus': imageStatus,
+        'allowLocationSharing': allowLocationSharing,
+        'allowUserTalkToAdmin': allowUserTalkToAdmin,
+        'moderatorCanInterrupt': moderatorCanInterrupt,
+        "creatorId": FirebaseAuth.instance.currentUser!.uid,
+      });
+
+      await saveSubChannelInfoToUser(subChannelId, channelName, true);
+      await saveMemberInSubChannel(subChannelId, channelName, true, auth);
+      await saveSubChannelName(channelName, subChannelId);
+      channelCreated = true;
+    } on SocketException catch (_) {
+      _isLoading = false;
+      _resMessage = "Internet connection is not available";
+      notifyListeners();
+      Navigator.pop(context);
+    } catch (e) {
+      _isLoading = false;
+      _resMessage = e.toString();
+      notifyListeners();
+      Navigator.pop(context);
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
+    }
     return channelCreated;
   }
 
@@ -263,7 +327,9 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error adding channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error adding channel: ${e.toString()}");
+      }
     }
 
     return channelCreated;
@@ -292,10 +358,34 @@ class ChannelProvider extends ChangeNotifier {
     });
   }
 
+  Future saveSubChannelInfoToUser(
+      String channelID, String channelName, bool isCreator) async {
+    return await userCollection
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection("channels")
+        .doc(selectedChannel.channelId)
+        .collection('subChannel')
+        .doc(channelID)
+        .set({
+      'userId': _firebaseAuth.currentUser!.uid,
+      'channelId': channelID,
+      'channelName': channelName,
+      "isCreated": isCreator,
+    });
+  }
+
   Future saveChannelName(String channelName, String channelId) async {
     return await channelNamesCollection
         .doc(channelName.toLowerCase())
         .set({'channelName': channelName, 'channelId': channelId});
+  }
+
+  Future saveSubChannelName(String childChannelName, String channelId) async {
+    return await channelNamesCollection
+        .doc(selectedChannel.channelName.toLowerCase())
+        .collection('subChannel')
+        .doc(channelId)
+        .set({'channelName': childChannelName, 'channelId': channelId});
   }
 
   Future saveMemberInChannel(String channelID, String channelName,
@@ -305,6 +395,26 @@ class ChannelProvider extends ChangeNotifier {
         .collection("members")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
+      'isPushed': false,
+      'isOnline': false,
+      'userId': _firebaseAuth.currentUser!.uid,
+      'username': auth.userInfo.userName,
+      'userFullName': auth.userInfo.fullName,
+      "isAdmin": isCreator,
+    });
+  }
+
+  Future saveMemberInSubChannel(String channelID, String channelName,
+      bool isCreator, AuthenticationProvider auth) async {
+    return await channelsCollection
+        .doc(selectedChannel.channelId)
+        .collection('subChannel')
+        .doc(channelID)
+        .collection('members')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      'isPushed': false,
+      'isOnline': false,
       'userId': _firebaseAuth.currentUser!.uid,
       'username': auth.userInfo.userName,
       'userFullName': auth.userInfo.fullName,
@@ -324,9 +434,15 @@ class ChannelProvider extends ChangeNotifier {
     _userChannelsConnected =
         _userChannels.where((channel) => channel.isCreated == false).toList();
 
-    print("Length of channels: ${_userChannels.length}");
-    print("Length of created channels: ${_userChannelCreated.length}");
-    print("Length of connected channels: ${_userChannelsConnected.length}");
+    if (kDebugMode) {
+      print("Length of channels: ${_userChannels.length}");
+    }
+    if (kDebugMode) {
+      print("Length of created channels: ${_userChannelCreated.length}");
+    }
+    if (kDebugMode) {
+      print("Length of connected channels: ${_userChannelsConnected.length}");
+    }
 
     notifyListeners();
   }
@@ -344,7 +460,10 @@ class ChannelProvider extends ChangeNotifier {
       _channelMembers = querySnapshot.docs
           .map((doc) => ChannelMembersModel.fromSnapshot(doc))
           .toList();
-      print("Length of channels: ${_channelMembers.length}");
+
+      if (kDebugMode) {
+        print("Length of channels: ${_channelMembers.length}");
+      }
 
       Navigator.pop(context);
       _isLoading = false;
@@ -355,7 +474,9 @@ class ChannelProvider extends ChangeNotifier {
       _isLoading = false;
       Navigator.pop(context);
       notifyListeners();
-      print("Error getting members: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error getting members: ${e.toString()}");
+      }
     }
   }
 
@@ -389,12 +510,11 @@ class ChannelProvider extends ChangeNotifier {
     _mRecorderInitialised = true;
     _isRecording = true;
     notifyListeners();
-    Directory directory = await getApplicationDocumentsDirectory();
 
+    Directory directory = await getApplicationDocumentsDirectory();
     _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
     String filepath = directory.path + '/' + _recordTime + '.mp4';
-    String encryptedFilePath = directory.path + '/' + _recordTime + '.aes';
-    String decryptedFilePath = directory.path + '/' + _recordTime + '.aes';
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
 
     _encryptedFilePath = encryptedFilePath;
 
@@ -413,110 +533,123 @@ class ChannelProvider extends ChangeNotifier {
     await _mRecorder?.stopRecorder();
     notifyListeners();
     _isUploading = false;
+    _isRecording = false;
     notifyListeners();
     return _filePath;
   }
 
   sendSound({required String user}) async {
     if (_mRecorder == null) return;
-
     //stop recording
     await _mRecorder!.stopRecorder();
     _isRecording = false;
     notifyListeners();
 
-    encryptFile().then((result) {
-      myEncryptedPath = result;
-      notifyListeners();
-    });
+    encryptFile().then((result) async {
+      try {
+        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+        _isSuccessful = true;
+        await firebaseStorage
+            .ref('records')
+            .child(_selectedChannel!.channelId)
+            .child(FirebaseAuth.instance.currentUser!.uid)
+            .child(_encryptedFilePath.substring(
+                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+            .putFile(File(result.path))
+            .then((result) async {
+          var url = await (result).ref.getDownloadURL();
+          var uploadedUrl = url.toString();
+          notifyListeners();
+          cloudNakedURL = uploadedUrl;
+          notifyListeners();
+        });
+      } on FirebaseException catch (e) {
+        _isSuccessful = false;
+        _resMessage =
+            "Could not send!', 'Error occurred while sending message, please check your connection.";
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      } finally {
+        if (_isSuccessful) {
+          Map<String, dynamic> _lastMessageInfo = {
+            'lastMessageTime': int.parse(_recordTime),
+          };
+          await updateLastMessageInfo(
+              _lastMessageInfo, _selectedChannel!.channelId);
 
-    late String encryptedURL;
-    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-    try {
-      _isSuccessful = true;
-      await firebaseStorage
-          .ref('records')
-          .child(_selectedChannel!.channelId)
-          .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(_encryptedFilePath.substring(
-              _filePath.lastIndexOf('/'), _encryptedFilePath.length))
-          .putFile(File(myEncryptedPath.path))
-          .then((result) async {
-        var url = await (result).ref.getDownloadURL();
-        var uploadedUrl = url.toString();
-
-        cloudNakedURL = uploadedUrl;
+          await addMessage(
+            _selectedChannel!.channelId,
+            Message(
+                record: cloudNakedURL,
+                sendBy: user,
+                time: int.parse(_recordTime),
+                timeStamp: DateTime.now()),
+          );
+          if (kDebugMode) {
+            print("Uploaded Successfully");
+          }
+        }
+        _isUploading = false;
         notifyListeners();
-      });
-    } on FirebaseException catch (e) {
-      _isSuccessful = false;
-      _resMessage =
-          "Could not send!', 'Error occurred while sending message, please check your connection.";
-      if (kDebugMode) {
-        print(e.toString());
       }
-    } finally {
-      if (_isSuccessful) {
-        Map<String, dynamic> _lastMessageInfo = {
-          'lastMessageTime': int.parse(_recordTime),
-          'lastMessageDuration':
-              10, //TODO  replace this with the real recorded duration
-        };
-        await updateLastMessageInfo(
-            _lastMessageInfo, _selectedChannel!.channelId);
-
-        await addMessage(
-          _selectedChannel!.channelId,
-          Message(
-              record: cloudNakedURL,
-              duration: 10, //TODO  replace this with the real recorded duration
-              sendBy: user,
-              time: int.parse(_recordTime),
-              timeStamp: DateTime.now()),
-        );
-        print("uploaded");
-      }
-
-      _isUploading = false;
-      notifyListeners();
-    }
+    });
   }
 
-  Future downloadEncryptedFile(
-      {required String url}) async {
-    if (url != '') {
-      var file = await DefaultCacheManager().putFile(url, myEncryptedPath.readAsBytesSync(),
-          fileExtension: 'bin',
-          maxAge: const Duration(seconds: 1),
-          eTag: 'record');
-      return file;
-    } else {
-      print("EMPTY PATH");
-    }
+  Future downloadEncryptedFile({required String url}) async {
+    return await DefaultCacheManager().downloadFile(url);
   }
 
   encryptFile() async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
+
+    _encryptedFilePath = encryptedFilePath;
+
     FileCryptor fileCryptor = FileCryptor(
-      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      key: encryptionKey,
       iv: 16,
-      dir: _filePath,
+      dir: _encryptedFilePath,
     );
     File encryptedFile = await fileCryptor.encrypt(
         inputFile: _filePath, outputFile: _encryptedFilePath);
-    myEncryptedPath = encryptedFile.absolute;
-    notifyListeners();
     return encryptedFile.absolute;
   }
 
   decryptFile({required encryptedFile}) async {
+    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+    Directory directory = await getApplicationDocumentsDirectory();
+    String decryptedFilePath = directory.path + '/' + _recordTime + '.mp4';
+
+    _decryptedFilePath = decryptedFilePath;
+
     FileCryptor fileCryptor = FileCryptor(
-      key: "TALK${_firebaseAuth.currentUser!.uid}",
+      key: encryptionKey,
       iv: 16,
-      dir: _filePath,
+      dir: _decryptedFilePath,
     );
     File decryptedFile = await fileCryptor.decrypt(
-        inputFile: encryptedFile, outputFile: filePath);
-    return decryptedFile.absolute;
+        inputFile: encryptedFile, outputFile: _decryptedFilePath);
+    return decryptedFile.absolute.path;
+  }
+
+  deletePlayedSound({required String currentDocId}) {
+    try {
+      FirebaseFirestore.instance
+          .collection('channelRoom')
+          .doc(selectedChannel.channelId)
+          .collection('chats')
+          .doc(currentDocId)
+          .delete();
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } finally {
+      if (kDebugMode) {
+        print("Deleted Successfully");
+      }
+    }
   }
 
   Future<void> updateLastMessageInfo(
@@ -548,7 +681,9 @@ class ChannelProvider extends ChangeNotifier {
         debugPrint('Name: $userName');
       });
     } catch (e) {
-      // Get.snackbar('Could get data!', 'Please check your internet connection.');
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 

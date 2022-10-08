@@ -47,6 +47,19 @@ class _NavScreenViewState extends State<NavScreenView> {
         backgroundColor: ColorManager.primaryColor,
           child: ListView(
             children: [
+
+              ListTile(
+                onTap: (){
+                  Navigator.pop(context);
+                  openCreateSubChannel(context);
+                },
+                leading: const Icon(Icons.create),
+                title: CustomText(text: AppStrings.createSubChannel,
+                  textColor: ColorManager.blackTextColor,
+                  fontWeight: FontWeight.w300,
+                  fontSize: FontSize.s20,
+                ),
+              ),
               ListTile(
                 onTap: (){
                   Navigator.pop(context);

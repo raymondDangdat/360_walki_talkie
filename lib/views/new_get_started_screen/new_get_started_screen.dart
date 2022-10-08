@@ -31,14 +31,20 @@ class _NewGetStartedScreenState extends State<NewGetStartedScreen> {
 
             SizedBox(height: AppSize.s20.h,),
 
-            WalkieButton(context: context, onTap: (){
+            WalkieButton(
+                height: AppSize.s51.h,
+                width: AppSize.s255.w,
+                context: context, onTap: (){
               openLoginScreen(context);
             }, title:
             AppStrings.loginToAccount),
 
             SizedBox(height: AppSize.s17.h,),
 
-            WalkieButton(context: context, onTap: (){
+            WalkieButton(
+                height: AppSize.s51.h,
+                width: AppSize.s255.w,
+                context: context, onTap: (){
               openAccountCreateScreen(context);
             }, title:
             AppStrings.getAnAccount),

@@ -80,7 +80,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 auth.clear();
                               }
                             });
-                            return WalkieButton(context: context, onTap: ()async{
+                            return WalkieButton(
+                                height: AppSize.s51.h,
+                                width: AppSize.s255.w,
+                                context: context, onTap: ()async{
                               if(emailController.text.trim().length >= 3
                                   && passwordController.text.trim().length >= 6){
                                 final user = await  auth.signInUserWithEmailAndPassword(
