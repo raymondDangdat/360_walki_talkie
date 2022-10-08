@@ -60,8 +60,6 @@ class AuthenticationProvider extends ChangeNotifier {
   List<UserChannelModel> get userChannelsConnected => _userChannelsConnected;
 
 
-
-
   Future<User?> createUserWithEmailAndPassword({required BuildContext context,
     required String email,
     required String password,
@@ -260,8 +258,9 @@ class AuthenticationProvider extends ChangeNotifier {
         .doc(userId)
         .collection("channels")
         .get();
-    _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
 
+
+    _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
     _userChannelCreated = _userChannels.where((channel) => channel.isCreated == true).toList();
     _userChannelsConnected = _userChannels.where((channel) => channel.isCreated == false).toList();
 

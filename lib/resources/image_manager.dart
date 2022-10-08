@@ -26,6 +26,7 @@ class AppImages {
   static const checked = "assets/images/icons/checked.svg";
   static const walkieLeft = "assets/images/walki_left_.png";
   static const dashboardStats = "assets/images/dashboard_bg.png";
+  static const subChannelItem = "assets/images/subchannel_items.png";
   static const wkt = "assets/images/wkt.png";
   static const tapToTalk = "assets/images/tap_to _speak.svg";
   static const speaker = "assets/images/speaker.svg";
@@ -69,5 +70,7 @@ class AppImages {
   static const notificationToggleOn = "assets/images/notification_toggle_on.svg";
   static const notificationToggleOff = "assets/images/notification_toggle_off.svg";
   static const checkedIcon = "assets/images/checked_icon.svg";
+  static const mainChannelIcon = "assets/images/mainChannelIcon.svg";
+  static const subChannelIcon = "assets/images/subChannelIcon.svg";
 
 }
