@@ -15,6 +15,8 @@ import 'package:walkie_talkie_360/views/profile/profile_screen.dart';
 import 'package:walkie_talkie_360/views/splash_view/splash_view.dart';
 
 import '../views/create_account_view/create_account_view.dart';
+import '../views/creeate_sub_channel/complete_sub_channel.dart';
+import '../views/creeate_sub_channel/create_sub_channel.dart';
 import '../views/get_started_screen/get_started_screen.dart';
 import '../views/login_screen/login_screen.dart';
 import '../views/on_boarding_screen/on_boarding.dart';

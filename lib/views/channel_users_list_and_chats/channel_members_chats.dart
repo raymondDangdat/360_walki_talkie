@@ -52,14 +52,9 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats>
     super.initState();
   }
 
+
   @override
   void dispose() {
-    FirebaseFirestore.instance
-        .collection('channels')
-        .doc(context.watch<ChannelProvider>().selectedChannel.channelId)
-        .collection("members")
-        .doc(context.watch<AuthenticationProvider>().userInfo.userID)
-        .update({'isOnline': false});
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -365,5 +360,16 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    FirebaseFirestore.instance
+        .collection('channels')
+        .doc(widget.channelProvider.selectedChannel.channelId)
+        .collection("members")
+        .doc(widget.authProvider.userInfo.userID)
+        .update({'isOnline': false});
+    super.dispose();
   }
 }
