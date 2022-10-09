@@ -1,8 +1,6 @@
-import 'package:expansion_widget/expansion_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'dart:math' as math;
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
@@ -234,6 +232,7 @@ class ChatView extends StatelessWidget {
                                                       }else{
                                                       //  sub channel push to talk
                                                         channelProvider.setSelectedChannel(channel);
+                                                        channelProvider.searchUserInSubChannelName(authProvider.userInfo.userName, authProvider.userInfo.fullName);
                                                         channelProvider.updateSelectedSubChannel(subChannel);
                                                         channelProvider.getSubChannelMembers(context, channel.channelId, subChannel.subChannelId);
                                                       }
@@ -453,6 +452,7 @@ class ChatView extends StatelessWidget {
                                                 }else{
                                                   //  sub channel push to talk
                                                   channelProvider.setSelectedChannel(channel);
+                                                  channelProvider.searchUserInSubChannelName(authProvider.userInfo.userName, authProvider.userInfo.fullName);
                                                   channelProvider.updateSelectedSubChannel(subChannel);
                                                   channelProvider.getSubChannelMembers(context, channel.channelId, subChannel.subChannelId);
                                                 }

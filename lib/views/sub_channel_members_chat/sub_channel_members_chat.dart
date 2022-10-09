@@ -14,7 +14,6 @@ import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
 import '../../resources/image_manager.dart';
-import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
@@ -53,14 +52,14 @@ class _SubChannelMembersChatsState extends State<SubChannelMembersChats>
       case AppLifecycleState.resumed:
       //Execute the code here when user come back the app.
         FirebaseFirestore.instance
-            .collection('channels')
+            .collection(channels)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
             .selectedChannel
             .channelId)
-            .collection("subChannel")
+            .collection(subChannel)
         .doc(Provider.of<ChannelProvider>(context, listen: false)
             .selectedSubChannel
-            ?.subChannelId).collection("members")
+            ?.subChannelId).collection(members)
             .doc(Provider.of<AuthenticationProvider>(context, listen: false)
             .userInfo
             .userID)
@@ -69,14 +68,14 @@ class _SubChannelMembersChatsState extends State<SubChannelMembersChats>
       case AppLifecycleState.paused:
       //Execute the code the when user leave the app
         FirebaseFirestore.instance
-            .collection('channels')
+            .collection(channels)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
             .selectedChannel
             .channelId)
-            .collection("subChannel")
+            .collection(subChannel)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
             .selectedSubChannel
-            ?.subChannelId).collection("members")
+            ?.subChannelId).collection(members)
             .doc(Provider.of<AuthenticationProvider>(context, listen: false)
             .userInfo
             .userID)
@@ -142,15 +141,15 @@ class _AudioStreamingState extends State<AudioStreaming> {
             return aDate.compareTo(bDate);
           });
 
-          if (records[records.length > 1 &&  records.length - 1].record == null ||
-              records[records.length > 1 && records.length - 1].record == '') {
+          if (records[records.length - 1].record == null ||
+              records[records.length - 1].record == '') {
             if (kDebugMode) {
               print("The path is empty");
             }
           } else {
             channelProvider
                 .downloadEncryptedFile(
-                url: records[records.length > 1 && records.length - 1].record)
+                url: records[records.length - 1].record)
                 .then((value) {
               channelProvider
                   .decryptFile(encryptedFile: value.file.path)
@@ -188,11 +187,11 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
     print("Sub Channel ID: ${widget.channelProvider.selectedSubChannel?.subChannelId}");
     super.initState();
     FirebaseFirestore.instance
-        .collection('channels')
+        .collection(channels)
         .doc(widget.channelProvider.selectedChannel.channelId)
-        .collection("subChannel")
+        .collection(subChannel)
     .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-    .collection("members")
+    .collection(members)
         .doc(widget.authProvider.userInfo.userID)
         .update({'isOnline': true});
   }
@@ -291,21 +290,21 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
                               itemBuilder: (context, index) {
                                 widget.channelProvider.isRecording
                                     ? FirebaseFirestore.instance
-                                    .collection('channels')
+                                    .collection(channels)
                                     .doc(widget.channelProvider.selectedChannel
                                     .channelId)
-                                .collection("subChannel")
+                                .collection(subChannel)
                                 .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-                                    .collection("members")
+                                    .collection(members)
                                     .doc(widget.authProvider.userInfo.userID)
                                     .update({'isPushed': true})
                                     : FirebaseFirestore.instance
-                                    .collection('channels')
+                                    .collection(channels)
                                     .doc(widget.channelProvider.selectedChannel
                                     .channelId)
-                                .collection("subChannel")
+                                .collection(subChannel)
                                 .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-                                    .collection("members")
+                                    .collection(members)
                                     .doc(widget.authProvider.userInfo.userID)
                                     .update({'isPushed': false});
 
@@ -368,11 +367,11 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
   @override
   void dispose() {
     FirebaseFirestore.instance
-        .collection('channels')
+        .collection(channels)
         .doc(widget.channelProvider.selectedChannel.channelId)
-    .collection("subChannel")
+    .collection(subChannel)
     .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-        .collection("members")
+        .collection(members)
         .doc(widget.authProvider.userInfo.userID)
         .update({'isOnline': false});
     super.dispose();

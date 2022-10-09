@@ -527,6 +527,47 @@ class ChannelProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> searchUserInSubChannelName(
+      String username, fullName
+      ) async{
+    try{
+      DocumentSnapshot doc = await channelsCollection
+      .doc(_selectedChannel?.channelId)
+      .collection(subChannel)
+      .doc(_selectedSubChannel?.subChannelId)
+      .collection(members)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get();
+
+      if(doc.exists){
+        print("Good to go");
+        await channelsCollection
+            .doc(selectedChannel.channelId)
+            .collection('subChannel')
+            .doc(_selectedSubChannel?.subChannelId)
+            .collection('members')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .set({
+          'isPushed': false,
+          'isOnline': false,
+          'userId': _firebaseAuth.currentUser!.uid,
+          'username': username,
+          'userFullName': fullName,
+          "isAdmin": false,
+        });
+      }else{
+      //  Add Member to the sub channel
+        print('Not found');
+
+      }
+
+
+    }catch (e){
+      // print("Error: ${e.toString()}");
+
+    }
+  }
+
   Future<void> getSubChannelMembers(BuildContext context, String mainChannelId, String subChannelId) async {
     _isLoading = true;
     showDialog(
