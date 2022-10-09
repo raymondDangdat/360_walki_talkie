@@ -52,7 +52,6 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats>
     super.initState();
   }
 
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -149,12 +148,30 @@ class _AudioStreamingState extends State<AudioStreaming> {
                 return aDate.compareTo(bDate);
               });
 
-              if (records[records.length - 1].record == null ||
-                  records[records.length - 1].record == '') {
-                if (kDebugMode) {
-                  print("The path is empty");
-                }
+              if (records.isEmpty) {
+                print("Records is empty for now");
               } else {
+                final records = snapshot.data!.docs.map((doc) {
+                  return ChatRecordsModel.fromSnapshot(doc);
+                }).toList();
+                records.sort((a, b) {
+                  int aDate = a.timeStamp.microsecondsSinceEpoch;
+                  int bDate = b.timeStamp.microsecondsSinceEpoch;
+                  return aDate.compareTo(bDate);
+                });
+                channelProvider
+                    .downloadEncryptedFile(
+                        url: records[records.length - 1].record)
+                    .then((value) {
+                  channelProvider
+                      .decryptFile(encryptedFile: value.file.path)
+                      .then((result) async {
+                    final player = AudioPlayer();
+                    await player.play(UrlSource(result));
+                    channelProvider.deletePlayedSound(
+                        currentDocId: records[records.length - 1].id);
+                  });
+                });
                 channelProvider
                     .downloadEncryptedFile(
                         url: records[records.length - 1].record)
