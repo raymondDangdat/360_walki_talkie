@@ -244,6 +244,8 @@ class _AddChannelByNameState extends State<AddChannelByName> {
                         }
                       });
                     return WalkieButton(
+                        height: AppSize.s51.h,
+                        width: AppSize.s255.w,
                         context: context, onTap: ()async{
                           if(channelNameFound){
                             final bool isAdded = await

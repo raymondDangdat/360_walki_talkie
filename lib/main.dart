@@ -9,11 +9,7 @@ import 'provider/channel_provider.dart';
 import 'resources/color_manager.dart';
 import 'resources/value_manager.dart';
 import 'resources/routes_manager.dart';
-import 'resources/theme_manager.dart';
-
 import 'package:provider/provider.dart';
-
-
 
 void main() async{
   SystemChrome.setSystemUIOverlayStyle( SystemUiOverlayStyle(
@@ -23,7 +19,6 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-
 
   await Firebase.initializeApp();
 

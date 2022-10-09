@@ -327,7 +327,11 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                         auth.clear();
                                       }
                                     });
-                                  return WalkieButton(context: context,
+                                  return WalkieButton(
+
+                                      height: AppSize.s51.h,
+                                      width: AppSize.s255.w,
+                                      context: context,
                                       onTap: ()async{
                                     if(userNameTaken){
                                       showTopSnackBar(
@@ -366,8 +370,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                       final user = await
                                       auth.createUserWithEmailAndPassword(
                                           context: context,
-                                          email: emailController.text
-                                          , password: passwordController.text,
+                                          email: emailController.text,password: passwordController.text,
                                           fullName: fullNameController.text,
                                           userName:
                                           userNameController.text.toLowerCase(),
@@ -375,8 +378,8 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                           phoneNumberController.text,
                                         file: file!
                                       );
-
                                       if(user != null){
+                                        auth.updatJustRegistered(true);
                                         openLoginScreen(context);
                                       }
                                     }

@@ -94,22 +94,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                       SizedBox(width: AppSize.s6.w,),
 
-                      Container(
-                        // width: AppSize.s156.w,
-                        padding: EdgeInsets.symmetric(horizontal: AppSize.s30.w),
-                        height: AppSize.s50.w,
-                        decoration: BoxDecoration(
-                            image: const DecorationImage(
-                                image: AssetImage(AppImages.signoutBg),
-                            fit: BoxFit.cover),
-                            borderRadius: BorderRadius.circular(
-                                AppSize.s23.r
-                            ),
+                      InkWell(
+                        onTap: (){
+                          print("Tapped");
+                        },
+                        child: Container(
+                          // width: AppSize.s156.w,
+                          padding: EdgeInsets.symmetric(horizontal: AppSize.s30.w),
+                          height: AppSize.s50.w,
+                          decoration: BoxDecoration(
+                              image: const DecorationImage(
+                                  image: AssetImage(AppImages.signoutBg),
+                              fit: BoxFit.cover),
+                              borderRadius: BorderRadius.circular(
+                                  AppSize.s23.r
+                              ),
+                          ),
+                          alignment: Alignment.center,
+                          child: CustomText(text: AppStrings.signOut,
+                            textColor: ColorManager.blackColor,
+                            fontSize: FontSize.s20,),
                         ),
-                        alignment: Alignment.center,
-                        child: CustomText(text: AppStrings.signOut,
-                          textColor: ColorManager.blackColor,
-                          fontSize: FontSize.s20,),
                       ),
 
                     ],

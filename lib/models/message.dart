@@ -1,11 +1,21 @@
 class Message {
-  int duration;
+  String record;
   String sendBy;
   int time;
+  DateTime timeStamp;
 
-  Message({required this.duration, required this.sendBy, required this.time});
+  Message(
+      {required this.record,
+      required this.sendBy,
+      required this.time,
+      required this.timeStamp});
 
   Map<String, dynamic> toMap() {
-    return {'duration': duration, 'sendBy': sendBy, 'time': time};
+    return {
+      'record': record,
+      'sendBy': sendBy,
+      'time': time,
+      'timeStamp': timeStamp
+    };
   }
 }

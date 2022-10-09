@@ -24,8 +24,6 @@ dependencies:
   intl: ^0.17.0
   onboarding: ^3.1.0
 
-  record_mp3: ^3.0.0
-  audioplayers: ^0.20.1
   path:
   permission_handler: ^10.0.0
   path_provider: ^2.0.11
@@ -41,6 +39,7 @@ dependencies:
   firebase_storage: ^8.0.3
   firebase_core: ^1.19.2
   image_picker: ^0.8.5+3
+  lottie: ^1.4.2
   cached_network_image: ^3.2.0
 
   top_snackbar_flutter: ^2.0.0
@@ -50,11 +49,19 @@ dependencies:
   get: ^4.3.8
 
   provider: ^6.0.3
+  file_cryptor: ^0.0.3
+  flutter_cache_manager: ^3.3.0
+  flutter_sound: ^9.2.13
+  audio_session: ^0.1.10
+  just_audio: ^0.9.28
+  audioplayers: ^1.0.1
+  qr_flutter: ^4.0.0
+  share_plus: ^4.5.3
+  screenshot: ^1.2.3
+  expansion_widget: ^0.0.3
+
 
   http:
-
-  flutter_audio_recorder2: ^0.0.2
-
   sizer: ^2.0.15
 
 
@@ -64,6 +71,14 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.10.0
+
+flutter_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/icons/icon/icon.png"
+  min_sdk_android: 21
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -83,10 +98,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
+  # To add assets to your applic1ation, add an assets section, like this:
   assets:
     - assets/images/
     - assets/images/icons/
+    - assets/lottie/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -100,18 +116,9 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Bahnschrift
+    - family: BAHNSCHRIFT
       fonts:
         - asset: assets/fonts/BAHNSCHRIFT.TTF
-          weight: 700
-        - asset: assets/fonts/BAHNSCHRIFT1.TTF
-          weight: 600
-        - asset: assets/fonts/BAHNSCHRIFT2.TTF
-          weight: 400
-        - asset: assets/fonts/BAHNSCHRIFT3.TTF
-          weight: 500
-        - asset: assets/fonts/BAHNSCHRIFT4.TTF
-          weight: 300
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

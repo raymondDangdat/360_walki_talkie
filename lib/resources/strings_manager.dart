@@ -28,9 +28,12 @@ class AppStrings {
   static const phoneNumber = "phone number";
   static const createChannel = "create channel";
   static const createAChannel = "create a channel";
+  static const mc = "mc:";
   static const joinChannel = "join channel";
+  static const chooseMainChannel = "choose main channel";
   static const createQrCode = "create qr code";
   static const createNewChannel = "create new channel";
+  static const createSubChannel = "create sub-channel";
   static const youCanCreateABrandNewChannel = "you can create a brand new channel for you and your team. you can set password.";
   static const corporateChannel = "corporate channel";
   static const createCorporateOrProgram = "create corporate or program channel for you and your project teams and departments. Design to make your teams effective on the go.";
@@ -38,6 +41,7 @@ class AppStrings {
   static const personalChannel = "personal channel";
   static const createPersonalChannel = "create personal channel for family and friends. This is designed for small circle or a one to one communication";
   static const addAChannelByName = "add yourself to a channel";
+  static const addASubChannelByName = "create a new sib-channel";
   static const ifYouKnow = "If your know the channel you want join. Simply add it here. ";
   static const clickToContinue = "click to continue.";
   static const generateChannelQrCode = "Generate Channel QR Code Here";
@@ -63,10 +67,13 @@ class AppStrings {
   static const nigeria = "nigeria";
   static const loginToAccount = "login to account";
   static const enterChannelName = "enter channel name";
+  static const enterSubChannelName = "enter sub-channel name";
+  static const chooseChannelName = "choose channel name";
   static const channelDescription = "channel description";
   static const channelPassword = "channel password";
   static const chooseLanguage = "choose language";
   static const ifYouKnowTheChannelName = "If you know the channel you want join. Simply add it in the  text field above.";
+  static const ifYouKnowTheSubChannelName = "If you know the channel you want to create a sub-channel under. Simply add it in the  text field above.";
   static const channelType = "select channel type";
   static const chooseCategory = "choose category";
   static const imageStatus = "image status";
@@ -97,6 +104,8 @@ class AppStrings {
   static const privacy = "privacy";
   static const termsAndConditions = "terms & condition";
   static const youHaveBeenAdded = "you have been added to " ;
+  static const youHaveCreated = "you have successfully created " ;
+  static const asASubChannel =  "as a sub-channel under ";
   static const channelSuccessfully =  "channel successfully!";
   static const returnToDashboard = "return to dashboard";
 

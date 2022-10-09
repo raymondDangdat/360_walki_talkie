@@ -1,38 +1,57 @@
 import 'dart:io';
-
+import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_cryptor/file_cryptor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_audio_recorder2/flutter_audio_recorder2.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
 import '../models/message.dart';
+import '../models/sub_channel_model.dart';
 import '../resources/constanst.dart';
 import '../service/abstracts/audio_player_service.dart';
 import '../service/abstracts/storage_service.dart';
+import '../views/channel_users_list_and_chats/channel_members_chats.dart';
 import '../widgets/loading.dart';
 
 import 'package:random_string/random_string.dart';
 
 class ChannelProvider extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   ///Setter
   bool _isLoading = false;
+  bool _isLoadingSubChannels = false;
+  bool get isLoadingSubChannels => _isLoadingSubChannels;
+
+  int _channelIndexToShowSubChannels = -1;
+  int get channelIndexToShowSubChannels => _channelIndexToShowSubChannels;
+
   String _resMessage = '';
   List<UserChannelModel> _userChannels = [];
   UserChannelModel? _selectedChannel;
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
+  final Map<String, dynamic> _chosenChannel = {};
+
+  Map<String, dynamic> get chosenChannel => _chosenChannel;
 
   List<ChannelMembersModel> _channelMembers = [];
 
-  bool  _isRecording = false;
+  List<SubChannelModel> _subChannels = [];
+  List<SubChannelModel> get subChannels => _subChannels;
+
+
+  bool _isRecording = false;
   bool get isRecording => _isRecording;
 
   bool _isSuccessful = false;
@@ -46,7 +65,15 @@ class ChannelProvider extends ChangeNotifier {
 
   String _filePath = "";
   String get filePath => _filePath;
-  FlutterAudioRecorder2? _audioRecorder;
+
+  String _encryptedFilePath = "";
+  String get encryptedFilePath => _encryptedFilePath;
+
+  String _decryptedFilePath = "";
+  String get decryptedFilePath => _decryptedFilePath;
+
+  FlutterSoundRecorder? _mRecorder = FlutterSoundRecorder();
+  bool _mRecorderInitialised = false;
 
   Stream<QuerySnapshot<Object?>>? _chatRooms;
   Stream<QuerySnapshot<Object?>>? get chatRooms => _chatRooms;
@@ -64,7 +91,10 @@ class ChannelProvider extends ChangeNotifier {
   List<ChannelMembersModel> get channelMembers => _channelMembers;
   UserChannelModel get selectedChannel => _selectedChannel!;
 
-   bool _isRecordPlaying = false;
+  SubChannelModel? _selectedSubChannel;
+  SubChannelModel? get selectedSubChannel => _selectedSubChannel;
+
+  bool _isRecordPlaying = false;
   bool get isRecordPlaying => _isRecordPlaying;
 
   final _currentPosition = <int, int>{};
@@ -78,14 +108,15 @@ class ChannelProvider extends ChangeNotifier {
 
   late final AudioPlayerService _audioPlayerService;
   late final StorageService _storageService;
+  late Task uploadTask;
+  late File myDecryptedPath;
+  String cloudNakedURL = '';
+
+  final storageRef = FirebaseStorage.instance.ref();
 
   int get currentId => _currentId;
 
   Map<int, int> get currentPosition => _currentPosition;
-
-
-
-
 
   void updateCurrentPosition(int id, int duration) {
     _currentPosition[id] = duration;
@@ -120,9 +151,9 @@ class ChannelProvider extends ChangeNotifier {
   Future<void> _loadRecord(
       String _chatRoomId, String _sendBy, int _time) async {
     final List<Reference> _references =
-    await _storageService.getUserRecords(_chatRoomId, _sendBy);
+        await _storageService.getUserRecords(_chatRoomId, _sendBy);
     _reference = _references.where((element) {
-      if (element.name == (_time.toString() + '.wav')) return true;
+      if (element.name == (_time.toString() + '.mp4')) return true;
       return false;
     });
     _loadedChatRoomId = _chatRoomId;
@@ -160,22 +191,35 @@ class ChannelProvider extends ChangeNotifier {
     await _audioPlayerService.pause();
   }
 
-
-
-  setSelectedChannel(UserChannelModel userChannelModel){
+  setSelectedChannel(UserChannelModel userChannelModel) {
     _selectedChannel = userChannelModel;
     notifyListeners();
   }
 
+  updateSelectedSubChannel(SubChannelModel subChannel) {
+    _selectedSubChannel = subChannel;
+    notifyListeners();
+  }
 
-  Future<bool> createBrandNewChannel(BuildContext context,
-      String channelName, String channelType,
-      String channelPassword, String channelDescription,
-      String channelCategory, String imageStatus,
-      bool allowLocationSharing,bool allowUserTalkToAdmin,
-      bool moderatorCanInterrupt,
-      AuthenticationProvider auth,
-      ) async{
+  showSubChannelsAtIndex(int channelIndex) {
+    _channelIndexToShowSubChannels = channelIndex;
+    print("New index $channelIndex");
+    notifyListeners();
+  }
+
+  Future<bool> createBrandNewChannel(
+    BuildContext context,
+    String channelName,
+    String channelType,
+    String channelPassword,
+    String channelDescription,
+    String channelCategory,
+    String imageStatus,
+    bool allowLocationSharing,
+    bool allowUserTalkToAdmin,
+    bool moderatorCanInterrupt,
+    AuthenticationProvider auth,
+  ) async {
     bool channelCreated = false;
     _isLoading = true;
     final channelId = randomAlphaNumeric(10);
@@ -186,11 +230,11 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
     try {
       await channelsCollection.doc(channelId).set({
-        'channelName' : channelName,
-        'channelType' : channelType,
-        'channelPassword' : channelPassword,
+        'channelName': channelName,
+        'channelType': channelType,
+        'channelPassword': channelPassword,
         'channelDescription': channelDescription,
-        'channelCategory' : channelCategory,
+        'channelCategory': channelCategory,
         'imageStatus': imageStatus,
         'allowLocationSharing': allowLocationSharing,
         'allowUserTalkToAdmin': allowUserTalkToAdmin,
@@ -202,7 +246,6 @@ class ChannelProvider extends ChangeNotifier {
       await saveMemberInChannel(channelId, channelName, true, auth);
       await saveChannelName(channelName, channelId);
       channelCreated = true;
-
     } on SocketException catch (_) {
       _isLoading = false;
       _resMessage = "Internet connection is not available";
@@ -213,17 +256,103 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error creating channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
     }
 
     return channelCreated;
-
   }
 
-  Future<bool> createChannelFromChannelName(BuildContext context,
-      String channelName, String channelId,
-      AuthenticationProvider auth,
-      ) async{
+  Future<bool> createBrandNewSubChannel(
+    BuildContext context,
+    String channelName,
+    String channelType,
+    String channelPassword,
+    String channelDescription,
+    String channelCategory,
+    String imageStatus,
+    bool allowLocationSharing,
+    bool allowUserTalkToAdmin,
+    bool moderatorCanInterrupt,
+    AuthenticationProvider auth,
+  ) async {
+    print('Create Brand New Sub Channel Method called');
+    bool channelCreated = false;
+    _isLoading = true;
+    final subChannelId = randomAlphaNumeric(10);
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => const LoadingIndicator());
+    notifyListeners();
+    try {
+     final collectionRef =   await channelsCollection
+          .doc(selectedChannel.channelId)
+          .collection(subChannel)
+          .doc(subChannelId)
+          .set({
+        'channelName': channelName,
+       "subChannelId": subChannelId,
+        'channelType': channelType,
+        'channelPassword': channelPassword,
+        'channelDescription': channelDescription,
+        'channelCategory': channelCategory,
+        'imageStatus': imageStatus,
+        'allowLocationSharing': allowLocationSharing,
+        'allowUserTalkToAdmin': allowUserTalkToAdmin,
+        'moderatorCanInterrupt': moderatorCanInterrupt,
+        "creatorId": FirebaseAuth.instance.currentUser!.uid,
+      });
+
+     // DocumentReference docRef = await
+     // FirebaseFirestore.instance
+     //     .collection(channels)
+     //     .doc(selectedChannel.channelId)
+     //     .collection(subChannel)
+     //     .add({
+     //   'channelName': channelName,
+     //   'channelType': channelType,
+     //   'channelPassword': channelPassword,
+     //   'channelDescription': channelDescription,
+     //   'channelCategory': channelCategory,
+     //   'imageStatus': imageStatus,
+     //   'allowLocationSharing': allowLocationSharing,
+     //   'allowUserTalkToAdmin': allowUserTalkToAdmin,
+     //   'moderatorCanInterrupt': moderatorCanInterrupt,
+     //   "creatorId": FirebaseAuth.instance.currentUser!.uid,
+     // });
+     //
+     // print("RefName ${docRef.id}");
+
+
+      await saveSubChannelInfoToUser(subChannelId, channelName, true);
+      await saveMemberInSubChannel(subChannelId, channelName, true, auth);
+      await saveSubChannelName(channelName, subChannelId);
+      channelCreated = true;
+    } on SocketException catch (_) {
+      _isLoading = false;
+      _resMessage = "Internet connection is not available";
+      notifyListeners();
+      Navigator.pop(context);
+    } catch (e) {
+      _isLoading = false;
+      _resMessage = e.toString();
+      notifyListeners();
+      Navigator.pop(context);
+      if (kDebugMode) {
+        print("Error creating channel: ${e.toString()}");
+      }
+    }
+    return channelCreated;
+  }
+
+  Future<bool> createChannelFromChannelName(
+    BuildContext context,
+    String channelName,
+    String channelId,
+    AuthenticationProvider auth,
+  ) async {
     bool channelCreated = false;
     _isLoading = true;
     showDialog(
@@ -232,12 +361,9 @@ class ChannelProvider extends ChangeNotifier {
         builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
     try {
-
-
       await saveChannelInfoToUser(channelId, channelName, false);
       await saveMemberInChannel(channelId, channelName, false, auth);
       channelCreated = true;
-
     } on SocketException catch (_) {
       _isLoading = false;
       _resMessage = "Internet connection is not available";
@@ -248,11 +374,12 @@ class ChannelProvider extends ChangeNotifier {
       _resMessage = e.toString();
       notifyListeners();
       Navigator.pop(context);
-      print("Error adding channel: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error adding channel: ${e.toString()}");
+      }
     }
 
     return channelCreated;
-
   }
 
   Future<dynamic> getPreviousChatDetails(String? chatRoomId) async {
@@ -264,180 +391,498 @@ class ChannelProvider extends ChangeNotifier {
         .snapshots();
   }
 
-
-  Future saveChannelInfoToUser(String channelID,
-      String channelName, bool isCreator) async{
-    return await userCollection.doc(
-        FirebaseAuth.instance.currentUser!.uid).collection("channels")
-        .doc(channelID).set({
-      'userId' : _firebaseAuth.currentUser!.uid,
+  Future saveChannelInfoToUser(
+      String channelID, String channelName, bool isCreator) async {
+    return await userCollection
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection("channels")
+        .doc(channelID)
+        .set({
+      'userId': _firebaseAuth.currentUser!.uid,
       'channelId': channelID,
       'channelName': channelName,
       "isCreated": isCreator,
     });
   }
 
-  Future saveChannelName(String channelName, String channelId) async{
-    return await channelNamesCollection.doc(channelName.toLowerCase()).set({
-      'channelName' : channelName,
-      'channelId' : channelId
+  Future saveSubChannelInfoToUser(
+      String subChannelID, String channelName, bool isCreator) async {
+    return await userCollection
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection(channels)
+        .doc(selectedChannel.channelId)
+        .collection(subChannel)
+        .doc(subChannelID)
+        .set({
+      'userId': _firebaseAuth.currentUser!.uid,
+      'subChannelId': subChannelID,
+      'channelName': channelName,
+      "isCreated": isCreator,
     });
   }
 
-  Future saveMemberInChannel(String channelID,
-      String channelName, bool isCreator, AuthenticationProvider auth) async{
-    return await channelsCollection.doc(channelID).collection("members")
-        .doc(FirebaseAuth.instance.currentUser!.uid).set({
-      'userId' : _firebaseAuth.currentUser!.uid,
+  Future saveChannelName(String channelName, String channelId) async {
+    return await channelNamesCollection
+        .doc(channelName.toLowerCase())
+        .set({'channelName': channelName, 'channelId': channelId});
+  }
+
+  Future saveSubChannelName(String childChannelName, String channelId) async {
+    return await channelNamesCollection
+        .doc(selectedChannel.channelName.toLowerCase())
+        .collection('subChannel')
+        .doc(channelId)
+        .set({'channelName': childChannelName, 'channelId': channelId});
+  }
+
+  Future saveMemberInChannel(String channelID, String channelName,
+      bool isCreator, AuthenticationProvider auth) async {
+    return await channelsCollection
+        .doc(channelID)
+        .collection("members")
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      'isPushed': false,
+      'isOnline': false,
+      'userId': _firebaseAuth.currentUser!.uid,
       'username': auth.userInfo.userName,
       'userFullName': auth.userInfo.fullName,
       "isAdmin": isCreator,
     });
   }
 
-
-
-
-  Future<void> getUserChannels(String userId) async{
-    QuerySnapshot querySnapshot = await userCollection
-        .doc(userId)
-        .collection("channels")
-        .get();
-   _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
-
-   _userChannelCreated = _userChannels.where((channel) => channel.isCreated == true).toList();
-    _userChannelsConnected = _userChannels.where((channel) => channel.isCreated == false).toList();
-
-   print("Length of channels: ${_userChannels.length}");
-    print("Length of created channels: ${_userChannelCreated.length}");
-    print("Length of connected channels: ${_userChannelsConnected.length}");
-
-   notifyListeners();
+  Future saveMemberInSubChannel(String channelID, String channelName,
+      bool isCreator, AuthenticationProvider auth) async {
+    return await channelsCollection
+        .doc(selectedChannel.channelId)
+        .collection('subChannel')
+        .doc(channelID)
+        .collection('members')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({
+      'isPushed': false,
+      'isOnline': false,
+      'userId': _firebaseAuth.currentUser!.uid,
+      'username': auth.userInfo.userName,
+      'userFullName': auth.userInfo.fullName,
+      "isAdmin": isCreator,
+    });
   }
 
+  Future<void> getUserChannels(String userId) async {
+    QuerySnapshot querySnapshot =
+        await userCollection.doc(userId).collection("channels").get();
+    _userChannels = querySnapshot.docs
+        .map((doc) => UserChannelModel.fromSnapshot(doc))
+        .toList();
 
-  Future<void> getChannelMembers(BuildContext context, String channelId) async{
+    _userChannelCreated =
+        _userChannels.where((channel) => channel.isCreated == true).toList();
+    _userChannelsConnected =
+        _userChannels.where((channel) => channel.isCreated == false).toList();
+
+    if (kDebugMode) {
+      print("Length of channels: ${_userChannels.length}");
+    }
+    if (kDebugMode) {
+      print("Length of created channels: ${_userChannelCreated.length}");
+    }
+    if (kDebugMode) {
+      print("Length of connected channels: ${_userChannelsConnected.length}");
+    }
+
+    notifyListeners();
+  }
+
+  Future<void> getChannelMembers(BuildContext context, String channelId) async {
     _isLoading = true;
     showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
+    try {
+      QuerySnapshot querySnapshot =
+          await channelsCollection.doc(channelId).collection("members").get();
+      _channelMembers = querySnapshot.docs
+          .map((doc) => ChannelMembersModel.fromSnapshot(doc))
+          .toList();
 
-    try{
-      QuerySnapshot querySnapshot = await channelsCollection
-          .doc(channelId)
-          .collection("members")
-          .get();
-      _channelMembers =  querySnapshot.docs.map((doc) => ChannelMembersModel.fromSnapshot(doc)).toList();
-      print("Length of channels: ${_channelMembers.length}");
+      if (kDebugMode) {
+        print("Length of channels: ${_channelMembers.length}");
+      }
 
       Navigator.pop(context);
       _isLoading = false;
       openChannelMembersChats(context);
 
       notifyListeners();
-    }catch (e){
+    } catch (e) {
       _isLoading = false;
       Navigator.pop(context);
       notifyListeners();
-      print("Error getting members: ${e.toString()}");
+      if (kDebugMode) {
+        print("Error getting members: ${e.toString()}");
+      }
     }
+  }
+
+  Future<void> searchUserInSubChannelName(
+      String username, fullName
+      ) async{
+    try{
+      DocumentSnapshot doc = await channelsCollection
+      .doc(_selectedChannel?.channelId)
+      .collection(subChannel)
+      .doc(_selectedSubChannel?.subChannelId)
+      .collection(members)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get();
+
+      if(doc.exists){
+        print("Good to go");
+        await channelsCollection
+            .doc(selectedChannel.channelId)
+            .collection('subChannel')
+            .doc(_selectedSubChannel?.subChannelId)
+            .collection('members')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .set({
+          'isPushed': false,
+          'isOnline': false,
+          'userId': _firebaseAuth.currentUser!.uid,
+          'username': username,
+          'userFullName': fullName,
+          "isAdmin": false,
+        });
+      }else{
+      //  Add Member to the sub channel
+        print('Not found');
+
+      }
+
+
+    }catch (e){
+      // print("Error: ${e.toString()}");
+
+    }
+  }
+
+  Future<void> getSubChannelMembers(BuildContext context, String mainChannelId, String subChannelId) async {
+    _isLoading = true;
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) => const LoadingIndicator());
+    notifyListeners();
+    try {
+      QuerySnapshot querySnapshot =
+      await channelsCollection.doc(mainChannelId).collection("subChannel").doc(subChannelId).collection("members").get();
+      _channelMembers = querySnapshot.docs
+          .map((doc) => ChannelMembersModel.fromSnapshot(doc))
+          .toList();
+
+      if (kDebugMode) {
+        print("Length of channel Members: ${_channelMembers.length}");
+      }
+
+      Navigator.pop(context);
+      _isLoading = false;
+      openSubChannelMembersChats(context);
+
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      Navigator.pop(context);
+      notifyListeners();
+      if (kDebugMode) {
+        print("Error getting members: ${e.toString()}");
+      }
+    }
+  }
+
+  Future<List<SubChannelModel>> getChannelSubChannels(
+      BuildContext context, String channelId, UserChannelModel mainChannel) async {
+    _isLoadingSubChannels = true;
+    print("The channel ID is: $channelId");
+    // showDialog(
+    //     barrierDismissible: false,
+    //     context: context,
+    //     builder: (BuildContext context) => const LoadingIndicator());
+    _subChannels = [];
+    notifyListeners();
+    try {
+      QuerySnapshot querySnapshot =
+      await channelsCollection.doc(channelId).collection(subChannel).get();
+      _subChannels = querySnapshot.docs
+          .map((doc) => SubChannelModel.fromSnapshot(doc))
+          .toList();
+      if(_subChannels.isNotEmpty){
+        // If the list is not empty, insert the main channel at the index zero so to display in the view
+        final mainChannelToAdd = SubChannelModel(subChannelId: mainChannel.channelId, subChannelName: mainChannel.channelName);
+        _subChannels.insert(0, mainChannelToAdd);
+      }
+      print("Sub channels: ${_subChannels.length}");
+      _isLoadingSubChannels = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoadingSubChannels = false;
+      Navigator.pop(context);
+      notifyListeners();
+      if (kDebugMode) {
+        print("Error getting members: ${e.toString()}");
+      }
+    }
+    return _subChannels;
   }
 
   Future<void> recordSound() async {
-    final bool? hasRecordingPermission =
-    await FlutterAudioRecorder2.hasPermissions;
-
-    if (hasRecordingPermission ?? false) {
-      _isRecording = true;
-      notifyListeners();
-      Directory directory = await getApplicationDocumentsDirectory();
-
-      _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
-      String filepath = directory.path + '/' + _recordTime + '.wav';
-      _audioRecorder =
-          FlutterAudioRecorder2(filepath, audioFormat: AudioFormat.WAV);
-      notifyListeners();
-      if (_audioRecorder != null) {
-        await _audioRecorder!.initialized;
-        _audioRecorder!.start();
+    if (!kIsWeb) {
+      var status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        throw RecordingPermissionException('Microphone permission not granted');
       }
-      _filePath = filepath;
-      notifyListeners();
-      print("File Path $_filePath");
-    } else {
-      // Get.snackbar('Could not record!', 'Please enable recording permission.');
     }
+    await _mRecorder!.openRecorder();
+    final session = await AudioSession.instance;
+    await session.configure(AudioSessionConfiguration(
+      avAudioSessionCategory: AVAudioSessionCategory.playAndRecord,
+      avAudioSessionCategoryOptions:
+          AVAudioSessionCategoryOptions.allowBluetooth |
+              AVAudioSessionCategoryOptions.defaultToSpeaker,
+      avAudioSessionMode: AVAudioSessionMode.spokenAudio,
+      avAudioSessionRouteSharingPolicy:
+          AVAudioSessionRouteSharingPolicy.defaultPolicy,
+      avAudioSessionSetActiveOptions: AVAudioSessionSetActiveOptions.none,
+      androidAudioAttributes: const AndroidAudioAttributes(
+        contentType: AndroidAudioContentType.speech,
+        flags: AndroidAudioFlags.none,
+        usage: AndroidAudioUsage.voiceCommunication,
+      ),
+      androidAudioFocusGainType: AndroidAudioFocusGainType.gain,
+      androidWillPauseWhenDucked: true,
+    ));
+
+    _mRecorderInitialised = true;
+    _isRecording = true;
+    notifyListeners();
+
+    Directory directory = await getApplicationDocumentsDirectory();
+    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+    String filepath = directory.path + '/' + _recordTime + '.mp4';
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
+
+    _encryptedFilePath = encryptedFilePath;
+
+    _mRecorder!.startRecorder(
+      toFile: filepath,
+      codec: Codec.aacMP4,
+      audioSource: theSource,
+    );
+    notifyListeners();
+
+    _filePath = filepath;
+    notifyListeners();
   }
 
-  void uploadSound(String user) async {
-    if (_audioRecorder == null) return;
-
-    //stop recording
-    await _audioRecorder!.stop();
-
-    // _setEffect();
-
-    // if (_effectCommand != null) {
-    //   _currentState.value = 'Adding effect...';
-    //   _filePath = await _addEffectToRecord(_effectCommand!);
-    // }
-
-    // _currentState.value = 'Sending record...';
-
-    //get details
-    final audioDetails = await _audioRecorder!.current();
-
-    //update screen
+  Future stopRecord() async {
+    await _mRecorder?.stopRecorder();
+    notifyListeners();
+    _isUploading = false;
     _isRecording = false;
-    _isUploading = true;
-
-    //upload record to firebase
-    FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-
-    try {
-      _isSuccessful = true;
-      await firebaseStorage
-          .ref('records')
-          .child(_selectedChannel!.channelId)
-          .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(
-          _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
-          .putFile(File(_filePath));
-    } catch (e) {
-      _isSuccessful = false;
-      _resMessage = "Could not send!', 'Error occured while sending message, please check your connection.";
-    } finally {
-      if (_isSuccessful) {
-        Map<String, dynamic> _lastMessageInfo = {
-          'lastMessageTime': int.parse(_recordTime),
-          'lastMessageDuration': audioDetails!.duration!.inSeconds,
-        };
-
-        await updateLastMessageInfo(
-            _lastMessageInfo, _selectedChannel!.channelId);
-
-        await addMessage(
-          _selectedChannel!.channelId,
-          Message(
-            duration: audioDetails.duration!.inSeconds,
-            sendBy: user,
-            time: int.parse(_recordTime),
-          ),
-        );
-      }
-      _isUploading = false;
-    }
+    notifyListeners();
+    return _filePath;
   }
 
+  sendSound({required String user}) async {
+    if (_mRecorder == null) return;
+    //stop recording
+    await _mRecorder!.stopRecorder();
+    _isRecording = false;
+    notifyListeners();
+
+    encryptFile().then((result) async {
+      try {
+        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+        _isSuccessful = true;
+        await firebaseStorage
+            .ref('records')
+            .child(_selectedChannel!.channelId)
+            .child(FirebaseAuth.instance.currentUser!.uid)
+            .child(_encryptedFilePath.substring(
+                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+            .putFile(File(result.path))
+            .then((result) async {
+          var url = await (result).ref.getDownloadURL();
+          var uploadedUrl = url.toString();
+          notifyListeners();
+          cloudNakedURL = uploadedUrl;
+          notifyListeners();
+        });
+      } on FirebaseException catch (e) {
+        _isSuccessful = false;
+        _resMessage =
+            "Could not send!', 'Error occurred while sending message, please check your connection.";
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      } finally {
+        if (_isSuccessful) {
+          Map<String, dynamic> _lastMessageInfo = {
+            'lastMessageTime': int.parse(_recordTime),
+          };
+          await updateLastMessageInfo(
+              _lastMessageInfo, _selectedChannel!.channelId);
+
+          await addMessage(
+            _selectedChannel!.channelId,
+            Message(
+                record: cloudNakedURL,
+                sendBy: user,
+                time: int.parse(_recordTime),
+                timeStamp: DateTime.now()),
+          );
+          if (kDebugMode) {
+            print("Uploaded Successfully");
+          }
+        }
+        _isUploading = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  sendSubChannelSound({required String user}) async {
+    if (_mRecorder == null) return;
+    //stop recording
+    await _mRecorder!.stopRecorder();
+    _isRecording = false;
+    notifyListeners();
+
+    encryptFile().then((result) async {
+      try {
+        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+        _isSuccessful = true;
+        await firebaseStorage
+            .ref('records')
+            .child(_selectedSubChannel!.subChannelId)
+            .child(FirebaseAuth.instance.currentUser!.uid)
+            .child(_encryptedFilePath.substring(
+            _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+            .putFile(File(result.path))
+            .then((result) async {
+          var url = await (result).ref.getDownloadURL();
+          var uploadedUrl = url.toString();
+          notifyListeners();
+          cloudNakedURL = uploadedUrl;
+          notifyListeners();
+        });
+      } on FirebaseException catch (e) {
+        _isSuccessful = false;
+        _resMessage =
+        "Could not send!', 'Error occurred while sending message, please check your connection.";
+        if (kDebugMode) {
+          print(e.toString());
+        }
+      } finally {
+        if (_isSuccessful) {
+          Map<String, dynamic> _lastMessageInfo = {
+            'lastMessageTime': int.parse(_recordTime),
+          };
+          await updateLastSubChannelMessageInfo(
+              _lastMessageInfo, _selectedSubChannel!.subChannelId);
+
+          await addSubChannelMessage(
+            _selectedSubChannel!.subChannelId,
+            Message(
+                record: cloudNakedURL,
+                sendBy: user,
+                time: int.parse(_recordTime),
+                timeStamp: DateTime.now()),
+          );
+          if (kDebugMode) {
+            print("Uploaded Successfully");
+          }
+        }
+        _isUploading = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  Future downloadEncryptedFile({required String url}) async {
+    return await DefaultCacheManager().downloadFile(url);
+  }
+
+  encryptFile() async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
+
+    _encryptedFilePath = encryptedFilePath;
+
+    FileCryptor fileCryptor = FileCryptor(
+      key: encryptionKey,
+      iv: 16,
+      dir: _encryptedFilePath,
+    );
+    File encryptedFile = await fileCryptor.encrypt(
+        inputFile: _filePath, outputFile: _encryptedFilePath);
+    return encryptedFile.absolute;
+  }
+
+  decryptFile({required encryptedFile}) async {
+    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+    Directory directory = await getApplicationDocumentsDirectory();
+    String decryptedFilePath = directory.path + '/' + _recordTime + '.mp4';
+
+    _decryptedFilePath = decryptedFilePath;
+
+    FileCryptor fileCryptor = FileCryptor(
+      key: encryptionKey,
+      iv: 16,
+      dir: _decryptedFilePath,
+    );
+    File decryptedFile = await fileCryptor.decrypt(
+        inputFile: encryptedFile, outputFile: _decryptedFilePath);
+    return decryptedFile.absolute.path;
+  }
+
+  deletePlayedSound({required String currentDocId}) {
+    try {
+      FirebaseFirestore.instance
+          .collection('channelRoom')
+          .doc(selectedChannel.channelId)
+          .collection('chats')
+          .doc(currentDocId)
+          .delete();
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } finally {
+      if (kDebugMode) {
+        print("Deleted Successfully");
+      }
+    }
+  }
 
   Future<void> updateLastMessageInfo(
       Map<String, dynamic> lastMessageInfo, String chatRoomId) async {
-    FirebaseFirestore.instance
+    firestore
         .collection('channelRoom')
         .doc(chatRoomId)
-        .update(lastMessageInfo)
+        .set(lastMessageInfo)
+        .catchError((e) {
+      debugPrint(e.toString());
+    });
+  }
+
+  Future<void> updateLastSubChannelMessageInfo(
+      Map<String, dynamic> lastMessageInfo, String chatRoomId) async {
+    firestore
+        .collection('channelRoom')
+        .doc(chatRoomId)
+        .set(lastMessageInfo)
         .catchError((e) {
       debugPrint(e.toString());
     });
@@ -454,17 +899,27 @@ class ChannelProvider extends ChangeNotifier {
     });
   }
 
+  Future<void> addSubChannelMessage(String chatRoomId, chatMessageData) async {
+    FirebaseFirestore.instance
+        .collection('channelRoom')
+        .doc(chatRoomId)
+        .collection('chats')
+        .add(chatMessageData.toMap())
+        .catchError((e) {
+      debugPrint(e.toString());
+    });
+  }
 
   Future<void> _getChatRooms(String userName) async {
-
     try {
-      getUserChats(userName)
-          .then((snapshots) {
+      getUserChats(userName).then((snapshots) {
         _chatRooms = snapshots;
         debugPrint('Name: $userName');
       });
     } catch (e) {
-      // Get.snackbar('Could get data!', 'Please check your internet connection.');
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 
@@ -474,9 +929,6 @@ class ChannelProvider extends ChangeNotifier {
         .where('users', arrayContains: currentUser)
         .snapshots();
   }
-
-
-
 
   void clear() {
     _resMessage = "";

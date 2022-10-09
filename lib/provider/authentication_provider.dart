@@ -26,12 +26,20 @@ class AuthenticationProvider extends ChangeNotifier {
   bool _notificationOn = false;
   bool get notificationOn => _notificationOn;
 
+  bool _justRegistered = false;
+  bool get justRegistered => _justRegistered;
+
   String _channelNameJoined = "";
   String get channelNameJoined => _channelNameJoined;
 
 
   void changeNotificationStatus(bool value){
     _notificationOn = value;
+    notifyListeners();
+  }
+
+  void updatJustRegistered(bool value){
+    _justRegistered = value;
     notifyListeners();
   }
 
@@ -58,8 +66,6 @@ class AuthenticationProvider extends ChangeNotifier {
   List<UserChannelModel> get userChannels => _userChannels;
   List<UserChannelModel> get userChannelsCreated => _userChannelCreated;
   List<UserChannelModel> get userChannelsConnected => _userChannelsConnected;
-
-
 
 
   Future<User?> createUserWithEmailAndPassword({required BuildContext context,
@@ -260,8 +266,9 @@ class AuthenticationProvider extends ChangeNotifier {
         .doc(userId)
         .collection("channels")
         .get();
-    _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
 
+
+    _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
     _userChannelCreated = _userChannels.where((channel) => channel.isCreated == true).toList();
     _userChannelsConnected = _userChannels.where((channel) => channel.isCreated == false).toList();
 

@@ -1,66 +1,78 @@
-
 import 'package:flutter/material.dart';
 import 'package:walkie_talkie_360/resources/routes_manager.dart';
 
-
-void openAccountCreateScreen(BuildContext context) async{
+void openAccountCreateScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.createAccount);
 }
 
-void openGetStartedScreen(BuildContext context) async{
+void openGetStartedScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.getStartedScreen);
 }
 
-void openNewGetStartedScreen(BuildContext context) async{
+void openNewGetStartedScreen(BuildContext context) async {
   Navigator.pushReplacementNamed(context, Routes.newGetStartedScreen);
 }
 
-void openChannelTypeScreen(BuildContext context) async{
+void openChannelTypeScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.channelTypes);
 }
 
-void openNavScreen(BuildContext context) async{
+void openNavScreen(BuildContext context) async {
   Navigator.pushReplacementNamed(context, Routes.navScreenView);
 }
 
-void openChannelJoinedScreen(BuildContext context) async{
+void openChannelJoinedScreen(BuildContext context) async {
   Navigator.pushReplacementNamed(context, Routes.channelJoinedSuccessfully);
 }
 
-void openAddChannelByName(BuildContext context) async{
+void openSubChannelJoinedScreen(BuildContext context) async {
+  Navigator.pushReplacementNamed(context, Routes.subChannelJoinedSuccessfully);
+}
+
+void openAddChannelByName(BuildContext context) async {
   Navigator.pushNamed(context, Routes.addByChannelName);
 }
 
-void openCreateBrandNewChannel(BuildContext context) async{
+void openCreateBrandNewChannel(BuildContext context) async {
   Navigator.pushNamed(context, Routes.createBrandNewChannel);
 }
 
-void openGenerateChannelQrCode(BuildContext context) async{
+void openCreateSubChannel(BuildContext context) async {
+  Navigator.pushNamed(context, Routes.createSubChannel);
+}
+
+void openCompleteSubChannel(BuildContext context) async {
+  Navigator.pushNamed(context, Routes.completeSubChannel);
+}
+
+void openGenerateChannelQrCode(BuildContext context) async {
   Navigator.pushNamed(context, Routes.generateChannelQrCode);
 }
 
-void openFixPasswordScreen(BuildContext context) async{
+void openFixPasswordScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.fixPasswordScreen);
 }
 
-void openLoginScreen(BuildContext context) async{
+void openLoginScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.loginScreen);
 }
 
-void openHowItWorksScreen(BuildContext context) async{
+void openHowItWorksScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.howItWorksScreen);
 }
 
-void openChannelMembersChats(BuildContext context) async{
+void openChannelMembersChats(BuildContext context) async {
   Navigator.pushNamed(context, Routes.channelMembersChats);
 }
 
-void openProfileScreen(BuildContext context) async{
+void openSubChannelMembersChats(BuildContext context) async {
+  Navigator.pushNamed(context, Routes.subChannelMembersChats);
+}
+
+void openProfileScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.profileScreen);
 }
 
-void openSettingScreen(BuildContext context) async{
+void openSettingScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.settingsScreen);
 }
-
-
