@@ -1,4 +1,3 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:expansion_widget/expansion_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -143,39 +142,202 @@ class ChatView extends StatelessWidget {
                     height: AppSize.s9.h,
                   ),
                   SizedBox(
-                    height: AppSize.s200.h,
+                    // height: AppSize.s200.h,
                     child: authProvider.userChannelsCreated.isNotEmpty
-                        ? ListView.builder(
-                            itemCount: authProvider.userChannelsCreated.length,
-                            itemBuilder: (context, index) {
-                              final channel =
-                                  authProvider.userChannelsCreated[index];
-                              return InkWell(
-                                onTap: () {
-                                  channelProvider.setSelectedChannel(channel);
-                                  channelProvider.getChannelMembers(
-                                      context, channel.channelId);
-                                },
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(bottom: AppSize.s3.h),
-                                  child: Container(
-                                    height: AppSize.s52.h,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                        color: ColorManager.textColor,
-                                        image: const DecorationImage(
-                                            image: AssetImage(
-                                                AppImages.dashboardStats),
-                                            fit: BoxFit.cover)),
-                                    child: CustomTextWithLineHeight(
-                                        text: channel.channelName,
-                                        textColor: ColorManager.whiteColor),
-                                    alignment: Alignment.center,
-                                  ),
-                                ),
-                              );
-                            })
+                        ? Column(
+                          children: [
+                            ListView.builder(
+                      shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: authProvider.userChannelsCreated.length,
+                                itemBuilder: (context, index) {
+                                  final channel =
+                                      authProvider.userChannelsCreated[index];
+                                  return Column(
+                                    children: [
+                                      InkWell(
+                                        onTap: () async{
+                                          if(channelProvider.channelIndexToShowSubChannels == index){
+                                            channelProvider.showSubChannelsAtIndex(-1);
+                                          }else{
+                                            final subChannels = await channelProvider.getChannelSubChannels(context, channel.channelId, channel);
+                                            if(subChannels.isEmpty){
+                                              //if the list of sub channels is empty, take user to push and talk screen
+                                              channelProvider.setSelectedChannel(channel);
+                                              channelProvider.getChannelMembers(
+                                                  context, channel.channelId);
+                                            }else{
+                                              //show sub-channels
+                                              channelProvider.showSubChannelsAtIndex(index);
+                                            }
+
+                                          }
+
+
+                                        },
+                                        child: Padding(
+                                          padding:
+                                              EdgeInsets.only(bottom: AppSize.s3.h),
+                                          child: Container(
+                                            height: AppSize.s52.h,
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                                color: ColorManager.textColor,
+                                                image: const DecorationImage(
+                                                    image: AssetImage(
+                                                        AppImages.dashboardStats),
+                                                    fit: BoxFit.cover)),
+                                            child: Padding(
+                                              padding: EdgeInsets.only(
+                                                left: AppSize.s16.w
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                      AppImages
+                                                          .mainChannelIcon),
+                                                  SizedBox(width: AppSize.s10.w,),
+                                                  CustomTextWithLineHeight(
+                                                      text: channel.channelName,
+                                                      textColor: ColorManager.whiteColor),
+                                                ],
+                                              ),
+                                            ),
+                                            alignment: Alignment.center,
+                                          ),
+                                        ),
+                                      ),
+                                      channelProvider.channelIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            bottom: channelProvider.subChannels.isEmpty ? 0 : 3.h
+                                          ),
+                                          child: ListView.builder(
+                                              shrinkWrap: true,
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              itemCount: channelProvider.subChannels.isEmpty ? channelProvider.subChannels.length :
+                                              channelProvider.subChannels.length,
+                                              itemBuilder: (context, index) {
+                                                final subChannel =
+                                                channelProvider.subChannels[index];
+                                                print("In here");
+                                                return Padding(
+                                                    padding:
+                                                    EdgeInsets.only(bottom: AppSize.s3.h),
+                                                  child: InkWell(
+                                                    onTap: () {
+                                                      if(index == 0){
+                                                      //  route to main channel push to talk
+                                                        channelProvider.setSelectedChannel(channel);
+                                                        channelProvider.getChannelMembers(
+                                                            context, channel.channelId);
+                                                      }else{
+                                                      //  sub channel push to talk
+                                                        channelProvider.setSelectedChannel(channel);
+                                                        channelProvider.updateSelectedSubChannel(subChannel);
+                                                        channelProvider.getSubChannelMembers(context, channel.channelId, subChannel.subChannelId);
+                                                      }
+                                                    },
+                                                    child: index == 0 ?
+                                                    Container(
+                                                      height: AppSize.s52.h,
+                                                      width: double.infinity,
+                                                      decoration: const BoxDecoration(
+                                                          image: DecorationImage(
+                                                              image: AssetImage(
+                                                                  AppImages
+                                                                      .subChannelItem),
+                                                              fit: BoxFit
+                                                                  .cover)),
+                                                      child: Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(8),
+                                                        child: Row(
+                                                          crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                          children: [
+                                                            Padding(
+                                                              padding: const EdgeInsets
+                                                                  .only(
+                                                                  right: AppSize
+                                                                      .s10),
+                                                              child: SizedBox(
+                                                                  child: SvgPicture.asset(
+                                                                      AppImages
+                                                                          .mainChannelIcon)),
+                                                            ),
+                                                            Expanded(
+                                                                child: Text(
+                                                                  subChannel
+                                                                      .subChannelName,
+                                                                  style: TextStyle(
+                                                                      color: ColorManager
+                                                                          .whiteColor),
+                                                                )),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      alignment:
+                                                      Alignment.center,
+                                                    ) :
+                                                    Container(
+                                                      height: AppSize.s52.h,
+                                                      width: double.infinity,
+                                                      decoration: const BoxDecoration(
+                                                          image: DecorationImage(
+                                                              image: AssetImage(
+                                                                  AppImages
+                                                                      .subChannelItem),
+                                                              fit: BoxFit
+                                                                  .cover)),
+                                                      child: Padding(
+                                                        padding:
+                                                        const EdgeInsets
+                                                            .all(8),
+                                                        child: Row(
+                                                          crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                          children: [
+                                                            Padding(
+                                                              padding: const EdgeInsets
+                                                                  .only(
+                                                                  right: AppSize
+                                                                      .s10),
+                                                              child: SizedBox(
+                                                                  child: SvgPicture.asset(
+                                                                      AppImages
+                                                                          .subChannelIcon)),
+                                                            ),
+                                                            Expanded(
+                                                                child: Text(
+                                                                  subChannel
+                                                                      .subChannelName,
+                                                                  style: TextStyle(
+                                                                      color: ColorManager
+                                                                          .whiteColor),
+                                                                )),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      alignment:
+                                                      Alignment.center,
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                        ) : Container()
+                                    ],
+                                  );
+                                }),
+
+
+
+
+                          ],
+                        )
                         : CustomTextWithLineHeight(
                             text: "No Created Channels",
                             textColor: ColorManager.textColor,
@@ -200,145 +362,335 @@ class ChatView extends StatelessWidget {
                     height: AppSize.s9.h,
                   ),
                   SizedBox(
-                    height: AppSize.s200.h,
                     child: authProvider.userChannelsConnected.isNotEmpty
-                        ? ListView.builder(
+                        ? Column(
+                      children: [
+                        ListView.builder(
                             shrinkWrap: true,
-                            itemCount:
-                                authProvider.userChannelsConnected.length,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: authProvider.userChannelsConnected.length,
                             itemBuilder: (context, index) {
                               final channel =
-                                  authProvider.userChannelsConnected[index];
-                              return Padding(
-                                  padding:
+                              authProvider.userChannelsConnected[index];
+                              return Column(
+                                children: [
+                                  InkWell(
+                                    onTap: () async{
+                                      if(channelProvider.channelIndexToShowSubChannels == index){
+                                        channelProvider.showSubChannelsAtIndex(-1);
+                                      }else{
+                                        final subChannels = await channelProvider.getChannelSubChannels(context, channel.channelId, channel);
+                                        if(subChannels.isEmpty){
+                                          //if the list of sub channels is empty, take user to push and talk screen
+                                          channelProvider.setSelectedChannel(channel);
+                                          channelProvider.getChannelMembers(
+                                              context, channel.channelId);
+                                        }else{
+                                          //show sub-channels
+                                          channelProvider.showSubChannelsAtIndex(index);
+                                        }
+
+                                      }
+
+
+                                    },
+                                    child: Padding(
+                                      padding:
                                       EdgeInsets.only(bottom: AppSize.s3.h),
-                                  child: ExpansionWidget(
-                                      initiallyExpanded: false,
-                                      titleBuilder: (double animationValue, _,
-                                          bool isExpanded, toggleFunction) {
-                                        return InkWell(
-                                          onTap: () =>
-                                              toggleFunction(animated: true),
-                                          child: Container(
-                                            height: AppSize.s52.h,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                                color: ColorManager.textColor,
-                                                image: const DecorationImage(
-                                                    image: AssetImage(AppImages
-                                                        .dashboardStats),
-                                                    fit: BoxFit.cover)),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8),
-                                              child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            right: AppSize.s10),
-                                                    child: SizedBox(
-                                                        child: SvgPicture.asset(
+                                      child: Container(
+                                        height: AppSize.s52.h,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                            color: ColorManager.textColor,
+                                            image: const DecorationImage(
+                                                image: AssetImage(
+                                                    AppImages.dashboardStats),
+                                                fit: BoxFit.cover)),
+                                        child: Padding(
+                                          padding: EdgeInsets.only(
+                                              left: AppSize.s16.w
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              SvgPicture.asset(
+                                                  AppImages
+                                                      .mainChannelIcon),
+                                              SizedBox(width: AppSize.s10.w,),
+                                              CustomTextWithLineHeight(
+                                                  text: channel.channelName,
+                                                  textColor: ColorManager.whiteColor),
+                                            ],
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                      ),
+                                    ),
+                                  ),
+                                  channelProvider.channelIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: channelProvider.subChannels.isEmpty ? 0 : 3.h
+                                    ),
+                                    child: ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: channelProvider.subChannels.isEmpty ? channelProvider.subChannels.length :
+                                        channelProvider.subChannels.length,
+                                        itemBuilder: (context, index) {
+                                          final subChannel =
+                                          channelProvider.subChannels[index];
+                                          print("In here");
+                                          return Padding(
+                                            padding:
+                                            EdgeInsets.only(bottom: AppSize.s3.h),
+                                            child: InkWell(
+                                              onTap: () {
+                                                if(index == 0){
+                                                  //  route to main channel push to talk
+                                                  channelProvider.setSelectedChannel(channel);
+                                                  channelProvider.getChannelMembers(
+                                                      context, channel.channelId);
+                                                }else{
+                                                  //  sub channel push to talk
+                                                  channelProvider.setSelectedChannel(channel);
+                                                  channelProvider.updateSelectedSubChannel(subChannel);
+                                                  channelProvider.getSubChannelMembers(context, channel.channelId, subChannel.subChannelId);
+                                                }
+                                              },
+                                              child: index == 0 ?
+                                              Container(
+                                                height: AppSize.s52.h,
+                                                width: double.infinity,
+                                                decoration: const BoxDecoration(
+                                                    image: DecorationImage(
+                                                        image: AssetImage(
                                                             AppImages
-                                                                .mainChannelIcon)),
+                                                                .subChannelItem),
+                                                        fit: BoxFit
+                                                            .cover)),
+                                                child: Padding(
+                                                  padding:
+                                                  const EdgeInsets
+                                                      .all(8),
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .center,
+                                                    children: [
+                                                      Padding(
+                                                        padding: const EdgeInsets
+                                                            .only(
+                                                            right: AppSize
+                                                                .s10),
+                                                        child: SizedBox(
+                                                            child: SvgPicture.asset(
+                                                                AppImages
+                                                                    .mainChannelIcon)),
+                                                      ),
+                                                      Expanded(
+                                                          child: Text(
+                                                            subChannel
+                                                                .subChannelName,
+                                                            style: TextStyle(
+                                                                color: ColorManager
+                                                                    .whiteColor),
+                                                          )),
+                                                    ],
                                                   ),
-                                                  Expanded(
-                                                      child: Text(
-                                                          channel.channelName,
-                                                          style: TextStyle(
-                                                              color: ColorManager
-                                                                  .whiteColor))),
-                                                  Transform.rotate(
-                                                    angle: math.pi *
-                                                        animationValue /
-                                                        2,
-                                                    child: const Icon(
-                                                        Icons.arrow_right,
-                                                        size: 40),
-                                                    alignment: Alignment.center,
-                                                  )
-                                                ],
+                                                ),
+                                                alignment:
+                                                Alignment.center,
+                                              ) :
+                                              Container(
+                                                height: AppSize.s52.h,
+                                                width: double.infinity,
+                                                decoration: const BoxDecoration(
+                                                    image: DecorationImage(
+                                                        image: AssetImage(
+                                                            AppImages
+                                                                .subChannelItem),
+                                                        fit: BoxFit
+                                                            .cover)),
+                                                child: Padding(
+                                                  padding:
+                                                  const EdgeInsets
+                                                      .all(8),
+                                                  child: Row(
+                                                    crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .center,
+                                                    children: [
+                                                      Padding(
+                                                        padding: const EdgeInsets
+                                                            .only(
+                                                            right: AppSize
+                                                                .s10),
+                                                        child: SizedBox(
+                                                            child: SvgPicture.asset(
+                                                                AppImages
+                                                                    .subChannelIcon)),
+                                                      ),
+                                                      Expanded(
+                                                          child: Text(
+                                                            subChannel
+                                                                .subChannelName,
+                                                            style: TextStyle(
+                                                                color: ColorManager
+                                                                    .whiteColor),
+                                                          )),
+                                                    ],
+                                                  ),
+                                                ),
+                                                alignment:
+                                                Alignment.center,
                                               ),
                                             ),
-                                            alignment: Alignment.center,
-                                          ),
-                                        );
-                                      },
-                                      content: ListView.builder(
-                                          shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          itemCount: authProvider
-                                              .userChannelsConnected.length,
-                                          itemBuilder: (context, index) {
-                                            final channel = authProvider
-                                                .userChannelsConnected[index];
-                                            return Padding(
-                                                padding: EdgeInsets.only(
-                                                    bottom: AppSize.s3.h),
-                                                child: ExpansionWidget(
-                                                  initiallyExpanded: false,
-                                                  titleBuilder:
-                                                      (double animationValue,
-                                                          _,
-                                                          bool isExpaned,
-                                                          toogleFunction) {
-                                                    return InkWell(
-                                                      onTap: () {
+                                          );
+                                        }),
+                                  ) : Container()
+                                ],
+                              );
+                            }),
 
 
 
 
-                                                      },
-                                                      child: Container(
-                                                        height: AppSize.s52.h,
-                                                        width: double.infinity,
-                                                        decoration: const BoxDecoration(
-                                                            image: DecorationImage(
-                                                                image: AssetImage(
-                                                                    AppImages
-                                                                        .subChannelItem),
-                                                                fit: BoxFit
-                                                                    .cover)),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8),
-                                                          child: Row(
-                                                            crossAxisAlignment:
-                                                                CrossAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              Padding(
-                                                                padding: const EdgeInsets
-                                                                        .only(
-                                                                    right: AppSize
-                                                                        .s10),
-                                                                child: SizedBox(
-                                                                    child: SvgPicture.asset(
-                                                                        AppImages
-                                                                            .subChannelIcon)),
-                                                              ),
-                                                              Expanded(
-                                                                  child: Text(
-                                                                channel
-                                                                    .channelName,
-                                                                style: TextStyle(
-                                                                    color: ColorManager
-                                                                        .whiteColor),
-                                                              )),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        alignment:
-                                                            Alignment.center,
-                                                      ),
-                                                    );
-                                                  },
-                                                  content: const SizedBox(),
-                                                ));
-                                          })));
-                            })
+                      ],
+                    )
+                    // ListView.builder(
+                    //         shrinkWrap: true,
+                    //         physics: const NeverScrollableScrollPhysics(),
+                    //         itemCount:
+                    //             authProvider.userChannelsConnected.length,
+                    //         itemBuilder: (context, index) {
+                    //           final channel =
+                    //               authProvider.userChannelsConnected[index];
+                    //           return Padding(
+                    //               padding:
+                    //                   EdgeInsets.only(bottom: AppSize.s3.h),
+                    //               child: ExpansionWidget(
+                    //                   initiallyExpanded: false,
+                    //                   titleBuilder: (double animationValue, _,
+                    //                       bool isExpanded, toggleFunction) {
+                    //                     return InkWell(
+                    //                       onTap: () =>
+                    //                           toggleFunction(animated: true),
+                    //                       child: Container(
+                    //                         height: AppSize.s52.h,
+                    //                         width: double.infinity,
+                    //                         decoration: BoxDecoration(
+                    //                             color: ColorManager.textColor,
+                    //                             image: const DecorationImage(
+                    //                                 image: AssetImage(AppImages
+                    //                                     .dashboardStats),
+                    //                                 fit: BoxFit.cover)),
+                    //                         child: Padding(
+                    //                           padding: const EdgeInsets.all(8),
+                    //                           child: Row(
+                    //                             crossAxisAlignment:
+                    //                                 CrossAxisAlignment.center,
+                    //                             children: [
+                    //                               Padding(
+                    //                                 padding:
+                    //                                     const EdgeInsets.only(
+                    //                                         right: AppSize.s10),
+                    //                                 child: SizedBox(
+                    //                                     child: SvgPicture.asset(
+                    //                                         AppImages
+                    //                                             .mainChannelIcon)),
+                    //                               ),
+                    //                               Expanded(
+                    //                                   child: Text(
+                    //                                       channel.channelName,
+                    //                                       style: TextStyle(
+                    //                                           color: ColorManager
+                    //                                               .whiteColor))),
+                    //                               Transform.rotate(
+                    //                                 angle: math.pi *
+                    //                                     animationValue /
+                    //                                     2,
+                    //                                 child: const Icon(
+                    //                                     Icons.arrow_right,
+                    //                                     size: 40),
+                    //                                 alignment: Alignment.center,
+                    //                               )
+                    //                             ],
+                    //                           ),
+                    //                         ),
+                    //                         alignment: Alignment.center,
+                    //                       ),
+                    //                     );
+                    //                   },
+                    //                   content: ListView.builder(
+                    //                       shrinkWrap: true,
+                    //                       physics: const NeverScrollableScrollPhysics(),
+                    //                       itemCount: authProvider
+                    //                           .userChannelsConnected.length,
+                    //                       itemBuilder: (context, index) {
+                    //                         final channel = authProvider
+                    //                             .userChannelsConnected[index];
+                    //                         return Padding(
+                    //                             padding: EdgeInsets.only(
+                    //                                 bottom: AppSize.s3.h),
+                    //                             child: ExpansionWidget(
+                    //                               initiallyExpanded: false,
+                    //                               titleBuilder:
+                    //                                   (double animationValue,
+                    //                                       _,
+                    //                                       bool isExpaned,
+                    //                                       toogleFunction) {
+                    //                                 return InkWell(
+                    //                                   onTap: () {
+                    //                                   },
+                    //                                   child: Container(
+                    //                                     height: AppSize.s52.h,
+                    //                                     width: double.infinity,
+                    //                                     decoration: const BoxDecoration(
+                    //                                         image: DecorationImage(
+                    //                                             image: AssetImage(
+                    //                                                 AppImages
+                    //                                                     .subChannelItem),
+                    //                                             fit: BoxFit
+                    //                                                 .cover)),
+                    //                                     child: Padding(
+                    //                                       padding:
+                    //                                           const EdgeInsets
+                    //                                               .all(8),
+                    //                                       child: Row(
+                    //                                         crossAxisAlignment:
+                    //                                             CrossAxisAlignment
+                    //                                                 .center,
+                    //                                         children: [
+                    //                                           Padding(
+                    //                                             padding: const EdgeInsets
+                    //                                                     .only(
+                    //                                                 right: AppSize
+                    //                                                     .s10),
+                    //                                             child: SizedBox(
+                    //                                                 child: SvgPicture.asset(
+                    //                                                     AppImages
+                    //                                                         .subChannelIcon)),
+                    //                                           ),
+                    //                                           Expanded(
+                    //                                               child: Text(
+                    //                                             channel
+                    //                                                 .channelName,
+                    //                                             style: TextStyle(
+                    //                                                 color: ColorManager
+                    //                                                     .whiteColor),
+                    //                                           )),
+                    //                                         ],
+                    //                                       ),
+                    //                                     ),
+                    //                                     alignment:
+                    //                                         Alignment.center,
+                    //                                   ),
+                    //                                 );
+                    //                               },
+                    //                               content: const SizedBox(),
+                    //                             ));
+                    //                       })));
+                    //         })
                         : CustomTextWithLineHeight(
                             text: "No Connected Channels",
                             textColor: ColorManager.textColor,

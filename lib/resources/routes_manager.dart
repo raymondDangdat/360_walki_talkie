@@ -4,8 +4,6 @@ import 'package:walkie_talkie_360/views/add_channel_by_name/add_channel_by_name.
 import 'package:walkie_talkie_360/views/channel_users_list_and_chats/channel_members_chats.dart';
 import 'package:walkie_talkie_360/views/channels_type_view/channel_types_view.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/create_brand_new_channel.dart';
-import 'package:walkie_talkie_360/views/creeate_sub_channel/complete_sub_channel.dart';
-import 'package:walkie_talkie_360/views/creeate_sub_channel/create_sub_channel.dart';
 import 'package:walkie_talkie_360/views/fix_password_screen/fix_password_screen.dart';
 import 'package:walkie_talkie_360/views/generate_channel_qr_code/generate_channel_qr_code.dart';
 import 'package:walkie_talkie_360/views/how_it_works/how_it_works_screen.dart';
@@ -15,8 +13,11 @@ import 'package:walkie_talkie_360/views/nav_screen/nav_screen_view.dart';
 import 'package:walkie_talkie_360/views/new_get_started_screen/new_get_started_screen.dart';
 import 'package:walkie_talkie_360/views/profile/profile_screen.dart';
 import 'package:walkie_talkie_360/views/splash_view/splash_view.dart';
+import 'package:walkie_talkie_360/views/sub_channel_members_chat/sub_channel_members_chat.dart';
 
 import '../views/create_account_view/create_account_view.dart';
+import '../views/creeate_sub_channel/complete_sub_channel.dart';
+import '../views/creeate_sub_channel/create_sub_channel.dart';
 import '../views/get_started_screen/get_started_screen.dart';
 import '../views/login_screen/login_screen.dart';
 import '../views/on_boarding_screen/on_boarding.dart';
@@ -40,6 +41,7 @@ class Routes {
   static const howItWorksScreen = "/how_it_works";
   static const profileScreen = "/profile_screen";
   static const channelMembersChats = "/channel_members_chats";
+  static const subChannelMembersChats = "/sub_channel_members_chats";
   static const settingsScreen = "/settings_screen";
   static const channelJoinedSuccessfully = "/channel_joined_successfully";
   static const subChannelJoinedSuccessfully = "/sub_channel_joined_successfully";
@@ -82,6 +84,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case Routes.channelMembersChats:
         return MaterialPageRoute(builder: (_) => const ChannelMembersChats());
+      case Routes.subChannelMembersChats:
+        return MaterialPageRoute(builder: (_) => const SubChannelMembersChats());
 
       case Routes.settingsScreen:
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
