@@ -69,6 +69,8 @@ class AppSize {
   static const double s87 = 87.0;
   static const double s15_5 = 15.5;
   static const double s15 = 15.0;
+  static const double s720 = 720.0;
+  static const double s170 = 170.0;
   static const double s1 = 1;
   static const double s234 = 234.0;
   static const double inputBorderSide = 1.5;
@@ -84,6 +86,7 @@ class AppSize {
   static const double s72 = 72.0;
   static const double s405 = 405.0;
   static const double s600 = 500.0;
+  static const double s800 = 800.0;
   static const double s66 = 66.0;
   static const int s308 = 308;
   static const double s130 = 130.0;

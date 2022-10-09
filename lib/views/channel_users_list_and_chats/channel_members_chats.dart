@@ -1,28 +1,18 @@
 import 'dart:async';
-import 'package:audio_session/audio_session.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/get_utils.dart';
 import 'package:get/state_manager.dart';
 import 'package:lottie/lottie.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
-import 'package:walkie_talkie_360/service/concretes/audio_player_adapter.dart';
 import 'package:walkie_talkie_360/views/chat_display_view.dart';
-import 'package:walkie_talkie_360/views/nav_screen/chats/chat_view.dart';
-
 import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/image_manager.dart';
@@ -206,6 +196,7 @@ class ChannelMembersChatBody extends StatefulWidget {
 }
 
 class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
+  String currentSpeaker = '';
   @override
   void initState() {
     super.initState();
@@ -224,16 +215,34 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
         children: [
           const NavScreensHeader(),
           SizedBox(height: AppSize.s52.h),
-          CustomTextWithLineHeight(
-            text: AppStrings.userName,
-            textColor: ColorManager.textColor,
+          StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection('channels')
+                .doc(widget.channelProvider.selectedChannel.channelId)
+                .collection("members")
+                .where("isPushed", isEqualTo: true)
+                .snapshots(),
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.data.docs != null &&
+                  snapshot.data.docs.isNotEmpty) {
+                return CustomTextWithLineHeight(
+                    text:
+                        "${snapshot.data.docs[0]['userFullName']} is talking...",
+                    textColor: ColorManager.textColor);
+              }
+              return CustomTextWithLineHeight(
+                  text: "", textColor: ColorManager.textColor);
+            },
           ),
           SizedBox(height: AppSize.s38.h),
           SizedBox(
               width: AppSize.s250.w,
               height: AppSize.s250.w,
               child: GestureDetector(
-                  onTapDown: (_) async => widget.channelProvider.recordSound(),
+                  onTapDown: (_) async {
+                    return widget.channelProvider.recordSound();
+                  },
                   onTapUp: (_) async {
                     widget.channelProvider.stopRecord().then((value) async {
                       await widget.channelProvider.sendSound(
@@ -323,45 +332,46 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                                     .doc(widget.authProvider.userInfo.userID)
                                     .update({'isPushed': false});
 
-                            return snapshot.data?.docs[index]["isOnline"] ==
-                                    true
-                                ? Padding(
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: AppSize.s2.h),
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: AppSize.s24.w),
-                                      width: double.infinity,
-                                      height: AppSize.s42.h,
-                                      decoration: const BoxDecoration(
-                                        color:
-                                            Color.fromRGBO(255, 213, 79, 0.2),
+                            if (snapshot.data?.docs[index]["isOnline"] ==
+                                true) {
+                              return Padding(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: AppSize.s2.h),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: AppSize.s24.w),
+                                  width: double.infinity,
+                                  height: AppSize.s42.h,
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromRGBO(255, 213, 79, 0.2),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      SvgPicture.asset(AppImages.memberIcon),
+                                      SizedBox(width: AppSize.s16.w),
+                                      Expanded(
+                                        child: CustomText(
+                                          text: snapshot.data?.docs[index]
+                                              ["userFullName"],
+                                          textColor: const Color.fromRGBO(
+                                              238, 233, 219, 1),
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                      child: Row(
-                                        children: [
-                                          SvgPicture.asset(
-                                              AppImages.memberIcon),
-                                          SizedBox(width: AppSize.s16.w),
-                                          Expanded(
-                                            child: CustomText(
-                                              text: snapshot.data?.docs[index]
-                                                  ["userFullName"],
-                                              textColor: const Color.fromRGBO(
-                                                  238, 233, 219, 1),
-                                              fontSize: 16,
-                                            ),
-                                          ),
-                                          snapshot.data?.docs[index]
-                                                      ["isPushed"] ==
-                                                  true
-                                              ? SvgPicture.asset(
-                                                  AppImages.memberSpeaking)
-                                              : const SizedBox(),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                : const SizedBox();
+                                      if (snapshot.data?.docs[index]
+                                              ["isPushed"] ==
+                                          true)
+                                        SvgPicture.asset(
+                                            AppImages.memberSpeaking)
+                                      else
+                                        const SizedBox(),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return const SizedBox();
+                            }
                             // return buildItem( context, snapshot.data?.docs[index]);
                           },
                         ),
