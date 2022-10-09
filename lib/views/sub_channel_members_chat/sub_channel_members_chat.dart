@@ -14,7 +14,6 @@ import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
 import '../../resources/image_manager.dart';
-import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
@@ -142,8 +141,8 @@ class _AudioStreamingState extends State<AudioStreaming> {
             return aDate.compareTo(bDate);
           });
 
-          if (records[records.length > 1 &&  records.length - 1].record == null ||
-              records[records.length > 1 && records.length - 1].record == '') {
+          if (records[records.length - 1].record == null ||
+              records[records.length - 1].record == '') {
             if (kDebugMode) {
               print("The path is empty");
             }
