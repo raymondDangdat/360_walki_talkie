@@ -7,7 +7,7 @@
    <application
         android:label="walkie_talkie_360"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
 
         <activity
             android:name=".MainActivity"

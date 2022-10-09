@@ -65,6 +65,10 @@ void openChannelMembersChats(BuildContext context) async {
   Navigator.pushNamed(context, Routes.channelMembersChats);
 }
 
+void openSubChannelMembersChats(BuildContext context) async {
+  Navigator.pushNamed(context, Routes.subChannelMembersChats);
+}
+
 void openProfileScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.profileScreen);
 }

@@ -92,8 +92,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     password: passwordController.text.trim());
 
                                 if(user != null){
-                                  //  login successful
-                                  openGetStartedScreen(context);
+                                  if(auth.justRegistered){
+                                    openGetStartedScreen(context);
+                                  }else{
+                                    //  login successful
+                                    openNavScreen(context);
+                                  }
+
+                                  auth.updatJustRegistered(false);
+                                  //
                                 }
                               }else{
                                 showTopSnackBar(
