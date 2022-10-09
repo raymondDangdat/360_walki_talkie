@@ -5,7 +5,11 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
    <application
+<<<<<<< HEAD
         android:label="360 Walkie"
+=======
+        android:label="Walkie Talkie 360"
+>>>>>>> 4bfd4df1af617a0467f941f0f097b7fa9afbcb4a
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 
