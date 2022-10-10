@@ -114,7 +114,9 @@ class _AudioStreamingState extends State<AudioStreaming> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
     final channelProvider = context.watch<ChannelProvider>();
-    final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
+    final Stream<QuerySnapshot> _recordingStream =
+
+    FirebaseFirestore.instance
         .collection('channelRoom')
         .doc(channelProvider.selectedSubChannel?.subChannelId)
         .collection('chats')
@@ -203,16 +205,37 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
         children: [
           const NavScreensHeader(),
           SizedBox(height: AppSize.s52.h),
-          // CustomTextWithLineHeight(
-          //   text: AppStrings.userName,
-          //   textColor: ColorManager.textColor,
-          // ),
+          StreamBuilder(
+            stream: FirebaseFirestore.instance
+                .collection(channels)
+                .doc(widget.channelProvider.selectedChannel.channelId)
+                .collection(subChannel)
+                .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+                .collection(members)
+                .where("isPushed", isEqualTo: true)
+                .snapshots(),
+
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.data.docs != null &&
+                  snapshot.data.docs.isNotEmpty) {
+                return CustomTextWithLineHeight(
+                    text:
+                    "${snapshot.data.docs[0]['userFullName']} is talking...",
+                    textColor: ColorManager.textColor);
+              }
+              return CustomTextWithLineHeight(
+                  text: "", textColor: ColorManager.textColor);
+            },
+          ),
           SizedBox(height: AppSize.s38.h),
           SizedBox(
               width: AppSize.s250.w,
               height: AppSize.s250.w,
               child: GestureDetector(
-                  onTapDown: (_) async => widget.channelProvider.recordSound(),
+                  onTapDown: (_) async {
+                    return widget.channelProvider.recordSound();
+                  },
                   onTapUp: (_) async {
                     widget.channelProvider.stopRecord().then((value) async {
                       await widget.channelProvider.sendSubChannelSound(
