@@ -39,7 +39,6 @@ class _SubChannelMembersChatsState extends State<SubChannelMembersChats>
     super.initState();
   }
 
-
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -50,35 +49,37 @@ class _SubChannelMembersChatsState extends State<SubChannelMembersChats>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-      //Execute the code here when user come back the app.
+        //Execute the code here when user come back the app.
         FirebaseFirestore.instance
             .collection(channels)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
-            .selectedChannel
-            .channelId)
+                .selectedChannel
+                .channelId)
             .collection(subChannel)
-        .doc(Provider.of<ChannelProvider>(context, listen: false)
-            .selectedSubChannel
-            ?.subChannelId).collection(members)
+            .doc(Provider.of<ChannelProvider>(context, listen: false)
+                .selectedSubChannel
+                ?.subChannelId)
+            .collection(members)
             .doc(Provider.of<AuthenticationProvider>(context, listen: false)
-            .userInfo
-            .userID)
+                .userInfo
+                .userID)
             .update({'isOnline': true});
         break;
       case AppLifecycleState.paused:
-      //Execute the code the when user leave the app
+        //Execute the code the when user leave the app
         FirebaseFirestore.instance
             .collection(channels)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
-            .selectedChannel
-            .channelId)
+                .selectedChannel
+                .channelId)
             .collection(subChannel)
             .doc(Provider.of<ChannelProvider>(context, listen: false)
-            .selectedSubChannel
-            ?.subChannelId).collection(members)
+                .selectedSubChannel
+                ?.subChannelId)
+            .collection(members)
             .doc(Provider.of<AuthenticationProvider>(context, listen: false)
-            .userInfo
-            .userID)
+                .userInfo
+                .userID)
             .update({'isOnline': false});
         break;
       default:
@@ -114,9 +115,8 @@ class _AudioStreamingState extends State<AudioStreaming> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
     final channelProvider = context.watch<ChannelProvider>();
-    final Stream<QuerySnapshot> _recordingStream =
 
-    FirebaseFirestore.instance
+    final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
         .collection('channelRoom')
         .doc(channelProvider.selectedSubChannel?.subChannelId)
         .collection('chats')
@@ -126,45 +126,45 @@ class _AudioStreamingState extends State<AudioStreaming> {
     return channelProvider.isRecording == true
         ? const SizedBox()
         : StreamBuilder(
-        stream: _recordingStream,
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasError) {
-            return const Text('Something went wrong');
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading");
-          }
-          final records = snapshot.data!.docs.map((doc) {
-            return ChatRecordsModel.fromSnapshot(doc);
-          }).toList();
-          records.sort((a, b) {
-            int aDate = a.timeStamp.microsecondsSinceEpoch;
-            int bDate = b.timeStamp.microsecondsSinceEpoch;
-            return aDate.compareTo(bDate);
-          });
-
-          if (records[records.length - 1].record == null ||
-              records[records.length - 1].record == '') {
-            if (kDebugMode) {
-              print("The path is empty");
-            }
-          } else {
-            channelProvider
-                .downloadEncryptedFile(
-                url: records[records.length - 1].record)
-                .then((value) {
-              channelProvider
-                  .decryptFile(encryptedFile: value.file.path)
-                  .then((result) async {
-                final player = AudioPlayer();
-                await player.play(UrlSource(result));
-                channelProvider.deletePlayedSound(
-                    currentDocId: records[records.length > 1 ].id);
+            stream: _recordingStream,
+            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasError) {
+                return const Text('Something went wrong');
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Text("Loading");
+              }
+              final records = snapshot.data!.docs.map((doc) {
+                return ChatRecordsModel.fromSnapshot(doc);
+              }).toList();
+              records.sort((a, b) {
+                int aDate = a.timeStamp.microsecondsSinceEpoch;
+                int bDate = b.timeStamp.microsecondsSinceEpoch;
+                return aDate.compareTo(bDate);
               });
+
+              if (records[records.length - 1].record == null ||
+                  records[records.length - 1].record == '') {
+                if (kDebugMode) {
+                  print("The path is empty");
+                }
+              } else {
+                channelProvider
+                    .downloadEncryptedFile(
+                        url: records[records.length - 1].record)
+                    .then((value) {
+                  channelProvider
+                      .decryptFile(encryptedFile: value.file.path)
+                      .then((result) async {
+                    final player = AudioPlayer();
+                    await player.play(UrlSource(result));
+                    channelProvider.deleteSubChannelPlayedSound(
+                        currentDocId: records[records.length - 1].id);
+                  });
+                });
+              }
+              return const SizedBox();
             });
-          }
-          return const SizedBox();
-        });
   }
 }
 
@@ -179,21 +179,23 @@ class SubChannelMembersChatBody extends StatefulWidget {
   final ChannelProvider channelProvider;
 
   @override
-  State<SubChannelMembersChatBody> createState() => _SubChannelMembersChatBodyState();
+  State<SubChannelMembersChatBody> createState() =>
+      _SubChannelMembersChatBodyState();
 }
 
 class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
   @override
   void initState() {
     print("Channel ID: ${widget.channelProvider.selectedChannel.channelId}");
-    print("Sub Channel ID: ${widget.channelProvider.selectedSubChannel?.subChannelId}");
+    print(
+        "Sub Channel ID: ${widget.channelProvider.selectedSubChannel?.subChannelId}");
     super.initState();
     FirebaseFirestore.instance
         .collection(channels)
         .doc(widget.channelProvider.selectedChannel.channelId)
         .collection(subChannel)
-    .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-    .collection(members)
+        .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+        .collection(members)
         .doc(widget.authProvider.userInfo.userID)
         .update({'isOnline': true});
   }
@@ -214,14 +216,13 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
                 .collection(members)
                 .where("isPushed", isEqualTo: true)
                 .snapshots(),
-
             builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
               if (snapshot.hasData &&
                   snapshot.data.docs != null &&
                   snapshot.data.docs.isNotEmpty) {
                 return CustomTextWithLineHeight(
                     text:
-                    "${snapshot.data.docs[0]['userFullName']} is talking...",
+                        "${snapshot.data.docs[0]['userFullName']} is talking...",
                     textColor: ColorManager.textColor);
               }
               return CustomTextWithLineHeight(
@@ -266,122 +267,124 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
           SizedBox(height: AppSize.s15.h),
           Expanded(
               child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection(channels)
-                      .doc(widget.channelProvider.selectedChannel.channelId)
+            width: MediaQuery.of(context).size.width,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection(channels)
+                  .doc(widget.channelProvider.selectedChannel.channelId)
                   .collection(subChannel)
                   .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
-                      .collection(members)
-                      .where(isOnline, isEqualTo: true)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return Column(
-                        children: [
-                          SizedBox(
-                              child: Container(
-                                height: AppSize.s52.h,
-                                width: double.infinity,
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                      image: AssetImage(AppImages.dashboardStats),
-                                      fit: BoxFit.cover),
-                                ),
-                                alignment: Alignment.center,
-                                child: Row(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: AppSize.s18.w),
-                                      child: CustomTextWithLineHeight(
-                                        text:
-                                        "Channel: ${widget.channelProvider.selectedSubChannel?.subChannelName} | ${snapshot.data?.docs.length} Member${snapshot.data?.docs.length == 1 ? "" : "s"} ",
-                                        textColor:
-                                        const Color.fromRGBO(248, 201, 158, 1),
-                                        fontSize: FontSize.s16,
-                                        fontWeight: FontWeightManager.semiBold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: snapshot.data?.docs.length,
-                              itemBuilder: (context, index) {
-                                widget.channelProvider.isRecording
-                                    ? FirebaseFirestore.instance
+                  .collection(members)
+                  .where(isOnline, isEqualTo: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data != null) {
+                  return Column(
+                    children: [
+                      SizedBox(
+                          child: Container(
+                        height: AppSize.s52.h,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          image: DecorationImage(
+                              image: AssetImage(AppImages.dashboardStats),
+                              fit: BoxFit.cover),
+                        ),
+                        alignment: Alignment.center,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: AppSize.s18.w),
+                              child: CustomTextWithLineHeight(
+                                text:
+                                    "Channel: ${widget.channelProvider.selectedSubChannel?.subChannelName} | ${snapshot.data?.docs.length} Member${snapshot.data?.docs.length == 1 ? "" : "s"} ",
+                                textColor:
+                                    const Color.fromRGBO(248, 201, 158, 1),
+                                fontSize: FontSize.s16,
+                                fontWeight: FontWeightManager.semiBold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: snapshot.data?.docs.length,
+                          itemBuilder: (context, index) {
+                            widget.channelProvider.isRecording
+                                ? FirebaseFirestore.instance
                                     .collection(channels)
                                     .doc(widget.channelProvider.selectedChannel
-                                    .channelId)
-                                .collection(subChannel)
-                                .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+                                        .channelId)
+                                    .collection(subChannel)
+                                    .doc(widget.channelProvider
+                                        .selectedSubChannel?.subChannelId)
                                     .collection(members)
                                     .doc(widget.authProvider.userInfo.userID)
                                     .update({'isPushed': true})
-                                    : FirebaseFirestore.instance
+                                : FirebaseFirestore.instance
                                     .collection(channels)
                                     .doc(widget.channelProvider.selectedChannel
-                                    .channelId)
-                                .collection(subChannel)
-                                .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+                                        .channelId)
+                                    .collection(subChannel)
+                                    .doc(widget.channelProvider
+                                        .selectedSubChannel?.subChannelId)
                                     .collection(members)
                                     .doc(widget.authProvider.userInfo.userID)
                                     .update({'isPushed': false});
 
-                                return snapshot.data?.docs[index]["isOnline"] ==
+                            return snapshot.data?.docs[index]["isOnline"] ==
                                     true
-                                    ? Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: AppSize.s2.h),
-                                  child: Container(
+                                ? Padding(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: AppSize.s24.w),
-                                    width: double.infinity,
-                                    height: AppSize.s42.h,
-                                    decoration: const BoxDecoration(
-                                      color:
-                                      Color.fromRGBO(255, 213, 79, 0.2),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        SvgPicture.asset(
-                                            AppImages.memberIcon),
-                                        SizedBox(width: AppSize.s16.w),
-                                        Expanded(
-                                          child: CustomText(
-                                            text: snapshot.data?.docs[index]
-                                            ["userFullName"],
-                                            textColor: const Color.fromRGBO(
-                                                238, 233, 219, 1),
-                                            fontSize: 16,
+                                        vertical: AppSize.s2.h),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: AppSize.s24.w),
+                                      width: double.infinity,
+                                      height: AppSize.s42.h,
+                                      decoration: const BoxDecoration(
+                                        color:
+                                            Color.fromRGBO(255, 213, 79, 0.2),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SvgPicture.asset(
+                                              AppImages.memberIcon),
+                                          SizedBox(width: AppSize.s16.w),
+                                          Expanded(
+                                            child: CustomText(
+                                              text: snapshot.data?.docs[index]
+                                                  ["userFullName"],
+                                              textColor: const Color.fromRGBO(
+                                                  238, 233, 219, 1),
+                                              fontSize: 16,
+                                            ),
                                           ),
-                                        ),
-                                        snapshot.data?.docs[index]
-                                        ["isPushed"] ==
-                                            true
-                                            ? SvgPicture.asset(
-                                            AppImages.memberSpeaking)
-                                            : const SizedBox(),
-                                      ],
+                                          snapshot.data?.docs[index]
+                                                      ["isPushed"] ==
+                                                  true
+                                              ? SvgPicture.asset(
+                                                  AppImages.memberSpeaking)
+                                              : const SizedBox(),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
-                                    : const SizedBox();
-                                // return buildItem( context, snapshot.data?.docs[index]);
-                              },
-                            ),
-                          )
-                        ],
-                      );
-                    } else {
-                      return Container();
-                    }
-                  },
-                ),
-              ))
+                                  )
+                                : const SizedBox();
+                            // return buildItem( context, snapshot.data?.docs[index]);
+                          },
+                        ),
+                      )
+                    ],
+                  );
+                } else {
+                  return Container();
+                }
+              },
+            ),
+          ))
         ],
       ),
     );
@@ -392,8 +395,8 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
     FirebaseFirestore.instance
         .collection(channels)
         .doc(widget.channelProvider.selectedChannel.channelId)
-    .collection(subChannel)
-    .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+        .collection(subChannel)
+        .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
         .collection(members)
         .doc(widget.authProvider.userInfo.userID)
         .update({'isOnline': false});

@@ -158,7 +158,7 @@ class _AudioStreamingState extends State<AudioStreaming> {
                       .then((result) async {
                     final player = AudioPlayer();
                     await player.play(UrlSource(result));
-                    channelProvider.deletePlayedSound(
+                    channelProvider.deleteChannelPlayedSound(
                         currentDocId: records[records.length - 1].id);
                   });
                 });
@@ -171,7 +171,7 @@ class _AudioStreamingState extends State<AudioStreaming> {
                       .then((result) async {
                     final player = AudioPlayer();
                     await player.play(UrlSource(result));
-                    channelProvider.deletePlayedSound(
+                    channelProvider.deleteChannelPlayedSound(
                         currentDocId: records[records.length - 1].id);
                   });
                 });
