@@ -541,6 +541,10 @@ class ChannelProvider extends ChangeNotifier {
 
       if(doc.exists){
         print("Good to go");
+
+      }else{
+      //  Add Member to the sub channel
+        print('Not found');
         await channelsCollection
             .doc(selectedChannel.channelId)
             .collection('subChannel')
@@ -555,9 +559,6 @@ class ChannelProvider extends ChangeNotifier {
           'userFullName': fullName,
           "isAdmin": false,
         });
-      }else{
-      //  Add Member to the sub channel
-        print('Not found');
 
       }
 
