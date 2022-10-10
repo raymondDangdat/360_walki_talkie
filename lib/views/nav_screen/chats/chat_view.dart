@@ -331,10 +331,6 @@ class ChatView extends StatelessWidget {
                                     ],
                                   );
                                 }),
-
-
-
-
                           ],
                         )
                         : CustomTextWithLineHeight(
