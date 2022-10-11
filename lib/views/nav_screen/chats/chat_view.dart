@@ -155,8 +155,8 @@ class ChatView extends StatelessWidget {
                                     children: [
                                       InkWell(
                                         onTap: () async{
-                                          if(channelProvider.channelIndexToShowSubChannels == index){
-                                            channelProvider.showSubChannelsAtIndex(-1);
+                                          if(channelProvider.channelCreatedIndexToShowSubChannels == index){
+                                            channelProvider.showCreatedSubChannelsAtIndex(-1);
                                           }else{
                                             final subChannels = await channelProvider.getChannelSubChannels(context, channel.channelId, channel);
                                             if(subChannels.isEmpty){
@@ -164,9 +164,10 @@ class ChatView extends StatelessWidget {
                                               channelProvider.setSelectedChannel(channel);
                                               channelProvider.getChannelMembers(
                                                   context, channel.channelId);
+
                                             }else{
                                               //show sub-channels
-                                              channelProvider.showSubChannelsAtIndex(index);
+                                              channelProvider.showCreatedSubChannelsAtIndex(index);
                                             }
 
                                           }
@@ -205,7 +206,7 @@ class ChatView extends StatelessWidget {
                                           ),
                                         ),
                                       ),
-                                      channelProvider.channelIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
+                                      channelProvider.channelCreatedIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
                                         Padding(
                                           padding: EdgeInsets.only(
                                             bottom: channelProvider.subChannels.isEmpty ? 0 : 3.h
@@ -232,8 +233,8 @@ class ChatView extends StatelessWidget {
                                                       }else{
                                                       //  sub channel push to talk
                                                         channelProvider.setSelectedChannel(channel);
-                                                        channelProvider.searchUserInSubChannelName(authProvider.userInfo.userName, authProvider.userInfo.fullName);
                                                         channelProvider.updateSelectedSubChannel(subChannel);
+                                                        channelProvider.searchUserInSubChannelName(authProvider.userInfo.userName, authProvider.userInfo.fullName);
                                                         channelProvider.getSubChannelMembers(context, channel.channelId, subChannel.subChannelId);
                                                       }
                                                     },
@@ -371,8 +372,8 @@ class ChatView extends StatelessWidget {
                                 children: [
                                   InkWell(
                                     onTap: () async{
-                                      if(channelProvider.channelIndexToShowSubChannels == index){
-                                        channelProvider.showSubChannelsAtIndex(-1);
+                                      if(channelProvider.channelConnectedIndexToShowSubChannels == index){
+                                        channelProvider.showConnectedSubChannelsAtIndex(-1);
                                       }else{
                                         final subChannels = await channelProvider.getChannelSubChannels(context, channel.channelId, channel);
                                         if(subChannels.isEmpty){
@@ -382,7 +383,7 @@ class ChatView extends StatelessWidget {
                                               context, channel.channelId);
                                         }else{
                                           //show sub-channels
-                                          channelProvider.showSubChannelsAtIndex(index);
+                                          channelProvider.showConnectedSubChannelsAtIndex(index);
                                         }
 
                                       }
@@ -421,7 +422,7 @@ class ChatView extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  channelProvider.channelIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
+                                  channelProvider.channelConnectedIndexToShowSubChannels == index && !channelProvider.isLoadingSubChannels?
                                   Padding(
                                     padding: EdgeInsets.only(
                                         bottom: channelProvider.subChannels.isEmpty ? 0 : 3.h

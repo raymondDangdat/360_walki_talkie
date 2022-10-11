@@ -33,8 +33,11 @@ class ChannelProvider extends ChangeNotifier {
   bool _isLoadingSubChannels = false;
   bool get isLoadingSubChannels => _isLoadingSubChannels;
 
-  int _channelIndexToShowSubChannels = -1;
-  int get channelIndexToShowSubChannels => _channelIndexToShowSubChannels;
+  int _channelCreatedIndexToShowSubChannels = -1;
+  int get channelCreatedIndexToShowSubChannels => _channelCreatedIndexToShowSubChannels;
+
+  int _channelConnectedIndexToShowSubChannels = -1;
+  int get channelConnectedIndexToShowSubChannels => _channelConnectedIndexToShowSubChannels;
 
   String _resMessage = '';
   List<UserChannelModel> _userChannels = [];
@@ -49,7 +52,6 @@ class ChannelProvider extends ChangeNotifier {
 
   List<SubChannelModel> _subChannels = [];
   List<SubChannelModel> get subChannels => _subChannels;
-
 
   bool _isRecording = false;
   bool get isRecording => _isRecording;
@@ -201,8 +203,14 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  showSubChannelsAtIndex(int channelIndex) {
-    _channelIndexToShowSubChannels = channelIndex;
+  showCreatedSubChannelsAtIndex(int channelIndex) {
+    _channelCreatedIndexToShowSubChannels = channelIndex;
+    print("New index $channelIndex");
+    notifyListeners();
+  }
+
+  showConnectedSubChannelsAtIndex(int channelIndex) {
+    _channelConnectedIndexToShowSubChannels = channelIndex;
     print("New index $channelIndex");
     notifyListeners();
   }
@@ -287,13 +295,13 @@ class ChannelProvider extends ChangeNotifier {
         builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
     try {
-     final collectionRef =   await channelsCollection
+      final collectionRef = await channelsCollection
           .doc(selectedChannel.channelId)
           .collection(subChannel)
           .doc(subChannelId)
           .set({
         'channelName': channelName,
-       "subChannelId": subChannelId,
+        "subChannelId": subChannelId,
         'channelType': channelType,
         'channelPassword': channelPassword,
         'channelDescription': channelDescription,
@@ -305,26 +313,25 @@ class ChannelProvider extends ChangeNotifier {
         "creatorId": FirebaseAuth.instance.currentUser!.uid,
       });
 
-     // DocumentReference docRef = await
-     // FirebaseFirestore.instance
-     //     .collection(channels)
-     //     .doc(selectedChannel.channelId)
-     //     .collection(subChannel)
-     //     .add({
-     //   'channelName': channelName,
-     //   'channelType': channelType,
-     //   'channelPassword': channelPassword,
-     //   'channelDescription': channelDescription,
-     //   'channelCategory': channelCategory,
-     //   'imageStatus': imageStatus,
-     //   'allowLocationSharing': allowLocationSharing,
-     //   'allowUserTalkToAdmin': allowUserTalkToAdmin,
-     //   'moderatorCanInterrupt': moderatorCanInterrupt,
-     //   "creatorId": FirebaseAuth.instance.currentUser!.uid,
-     // });
-     //
-     // print("RefName ${docRef.id}");
-
+      // DocumentReference docRef = await
+      // FirebaseFirestore.instance
+      //     .collection(channels)
+      //     .doc(selectedChannel.channelId)
+      //     .collection(subChannel)
+      //     .add({
+      //   'channelName': channelName,
+      //   'channelType': channelType,
+      //   'channelPassword': channelPassword,
+      //   'channelDescription': channelDescription,
+      //   'channelCategory': channelCategory,
+      //   'imageStatus': imageStatus,
+      //   'allowLocationSharing': allowLocationSharing,
+      //   'allowUserTalkToAdmin': allowUserTalkToAdmin,
+      //   'moderatorCanInterrupt': moderatorCanInterrupt,
+      //   "creatorId": FirebaseAuth.instance.currentUser!.uid,
+      // });
+      //
+      // print("RefName ${docRef.id}");
 
       await saveSubChannelInfoToUser(subChannelId, channelName, true);
       await saveMemberInSubChannel(subChannelId, channelName, true, auth);
@@ -527,24 +534,20 @@ class ChannelProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> searchUserInSubChannelName(
-      String username, fullName
-      ) async{
-    try{
+  Future<void> searchUserInSubChannelName(String username, fullName) async {
+    try {
       DocumentSnapshot doc = await channelsCollection
-      .doc(_selectedChannel?.channelId)
-      .collection(subChannel)
-      .doc(_selectedSubChannel?.subChannelId)
-      .collection(members)
+          .doc(_selectedChannel?.channelId)
+          .collection(subChannel)
+          .doc(_selectedSubChannel?.subChannelId)
+          .collection(members)
           .doc(FirebaseAuth.instance.currentUser?.uid)
           .get();
 
-      if(doc.exists){
+      if (doc.exists) {
         print("Good to go");
 
-      }else{
-      //  Add Member to the sub channel
-        print('Not found');
+      }else {
         await channelsCollection
             .doc(selectedChannel.channelId)
             .collection('subChannel')
@@ -559,17 +562,15 @@ class ChannelProvider extends ChangeNotifier {
           'userFullName': fullName,
           "isAdmin": false,
         });
-
       }
-
-
-    }catch (e){
+    } catch (e) {
       // print("Error: ${e.toString()}");
 
     }
   }
 
-  Future<void> getSubChannelMembers(BuildContext context, String mainChannelId, String subChannelId) async {
+  Future<void> getSubChannelMembers(
+      BuildContext context, String mainChannelId, String subChannelId) async {
     _isLoading = true;
     showDialog(
         barrierDismissible: false,
@@ -577,8 +578,12 @@ class ChannelProvider extends ChangeNotifier {
         builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
     try {
-      QuerySnapshot querySnapshot =
-      await channelsCollection.doc(mainChannelId).collection("subChannel").doc(subChannelId).collection("members").get();
+      QuerySnapshot querySnapshot = await channelsCollection
+          .doc(mainChannelId)
+          .collection("subChannel")
+          .doc(subChannelId)
+          .collection("members")
+          .get();
       _channelMembers = querySnapshot.docs
           .map((doc) => ChannelMembersModel.fromSnapshot(doc))
           .toList();
@@ -602,8 +607,8 @@ class ChannelProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<SubChannelModel>> getChannelSubChannels(
-      BuildContext context, String channelId, UserChannelModel mainChannel) async {
+  Future<List<SubChannelModel>> getChannelSubChannels(BuildContext context,
+      String channelId, UserChannelModel mainChannel) async {
     _isLoadingSubChannels = true;
     print("The channel ID is: $channelId");
     // showDialog(
@@ -614,13 +619,15 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
     try {
       QuerySnapshot querySnapshot =
-      await channelsCollection.doc(channelId).collection(subChannel).get();
+          await channelsCollection.doc(channelId).collection(subChannel).get();
       _subChannels = querySnapshot.docs
           .map((doc) => SubChannelModel.fromSnapshot(doc))
           .toList();
-      if(_subChannels.isNotEmpty){
+      if (_subChannels.isNotEmpty) {
         // If the list is not empty, insert the main channel at the index zero so to display in the view
-        final mainChannelToAdd = SubChannelModel(subChannelId: mainChannel.channelId, subChannelName: mainChannel.channelName);
+        final mainChannelToAdd = SubChannelModel(
+            subChannelId: mainChannel.channelId,
+            subChannelName: mainChannel.channelName);
         _subChannels.insert(0, mainChannelToAdd);
       }
       print("Sub channels: ${_subChannels.length}");
@@ -769,7 +776,7 @@ class ChannelProvider extends ChangeNotifier {
             .child(_selectedSubChannel!.subChannelId)
             .child(FirebaseAuth.instance.currentUser!.uid)
             .child(_encryptedFilePath.substring(
-            _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
             .putFile(File(result.path))
             .then((result) async {
           var url = await (result).ref.getDownloadURL();
@@ -781,7 +788,7 @@ class ChannelProvider extends ChangeNotifier {
       } on FirebaseException catch (e) {
         _isSuccessful = false;
         _resMessage =
-        "Could not send!', 'Error occurred while sending message, please check your connection.";
+            "Could not send!', 'Error occurred while sending message, please check your connection.";
         if (kDebugMode) {
           print(e.toString());
         }
@@ -848,7 +855,7 @@ class ChannelProvider extends ChangeNotifier {
     return decryptedFile.absolute.path;
   }
 
-  deletePlayedSound({required String currentDocId}) {
+  deleteChannelPlayedSound({required String currentDocId}) {
     try {
       FirebaseFirestore.instance
           .collection('channelRoom')
@@ -859,6 +866,27 @@ class ChannelProvider extends ChangeNotifier {
     } on FirebaseException catch (e) {
       if (kDebugMode) {
         print(e);
+      }
+    } finally {
+      if (kDebugMode) {
+        print("Deleted Successfully");
+      }
+    }
+  }
+
+
+
+  deleteSubChannelPlayedSound({required String currentDocId}) {
+    try {
+      FirebaseFirestore.instance
+          .collection('channelRoom')
+          .doc(selectedSubChannel?.subChannelId)
+          .collection('chats')
+          .doc(currentDocId)
+          .delete();
+    } on FirebaseException catch (e) {
+      if (kDebugMode) {
+        print(e.message);
       }
     } finally {
       if (kDebugMode) {
