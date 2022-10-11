@@ -41,7 +41,7 @@ class AppStrings {
   static const personalChannel = "personal channel";
   static const createPersonalChannel = "create personal channel for family and friends. This is designed for small circle or a one to one communication";
   static const addAChannelByName = "add yourself to a channel";
-  static const addASubChannelByName = "create a new sib-channel";
+  static const addASubChannelByName = "create a new sub-channel";
   static const ifYouKnow = "If your know the channel you want join. Simply add it here. ";
   static const clickToContinue = "click to continue.";
   static const generateChannelQrCode = "Generate Channel QR Code Here";

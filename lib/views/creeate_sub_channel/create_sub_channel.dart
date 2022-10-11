@@ -36,21 +36,23 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
   String channelName = "";
   String channelId = "";
 
-  List<SearchChannelModel> allChannels = [];
-  List<SearchChannelModel> searchList = [];
+  List<UserChannelModel> allChannels = [];
+  List<UserChannelModel> searchList = [];
   QuerySnapshot? channelSnapshot;
 
-  void getAllChannels() async {
-    await getChannels().then((value) {
-      channelSnapshot = value;
-      allChannels = channelSnapshot!.docs
-          .map((doc) => SearchChannelModel.fromSnapshot(doc))
-          .toList();
-      print("Channels length: ${allChannels.length}");
-      isSearching = false;
-      setState(() {});
-    });
-  }
+  // void getAllChannels() async {
+  //
+  //
+  //   await getChannels().then((value) {
+  //     channelSnapshot = value;
+  //     allChannels = channelSnapshot!.docs
+  //         .map((doc) => SearchChannelModel.fromSnapshot(doc))
+  //         .toList();
+  //     print("Channels length: ${allChannels.length}");
+  //     isSearching = false;
+  //     setState(() {});
+  //   });
+  // }
 
   getChannels() async {
     return await FirebaseFirestore.instance.collection("channelNames").get();
@@ -58,13 +60,23 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
 
   @override
   void initState() {
-    getAllChannels();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final auth =
+      Provider.of<AuthenticationProvider>(context, listen: false);
+
+      allChannels.addAll(auth.userChannelsConnected);
+      allChannels.addAll(auth.userChannelsCreated);
+
+
+    });
+    setState(() {
+
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthenticationProvider>();
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
       body: SafeArea(
@@ -115,7 +127,6 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                         onChanged: (String value) {
                           setState(() {
                             isSearching = true;
-
                             if (allChannels.isNotEmpty && value.isNotEmpty) {
                               searchList = allChannels
                                   .where((element) => element.channelName

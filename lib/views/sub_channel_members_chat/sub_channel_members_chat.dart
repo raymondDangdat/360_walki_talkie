@@ -115,14 +115,12 @@ class _AudioStreamingState extends State<AudioStreaming> {
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
     final channelProvider = context.watch<ChannelProvider>();
-
     final Stream<QuerySnapshot> _recordingStream = FirebaseFirestore.instance
         .collection('channelRoom')
         .doc(channelProvider.selectedSubChannel?.subChannelId)
         .collection('chats')
         .where("sendBy", isNotEqualTo: authProvider.userInfo.userName)
         .snapshots();
-
     return channelProvider.isRecording == true
         ? const SizedBox()
         : StreamBuilder(

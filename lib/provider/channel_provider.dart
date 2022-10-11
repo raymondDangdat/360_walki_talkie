@@ -33,8 +33,11 @@ class ChannelProvider extends ChangeNotifier {
   bool _isLoadingSubChannels = false;
   bool get isLoadingSubChannels => _isLoadingSubChannels;
 
-  int _channelIndexToShowSubChannels = -1;
-  int get channelIndexToShowSubChannels => _channelIndexToShowSubChannels;
+  int _channelCreatedIndexToShowSubChannels = -1;
+  int get channelCreatedIndexToShowSubChannels => _channelCreatedIndexToShowSubChannels;
+
+  int _channelConnectedIndexToShowSubChannels = -1;
+  int get channelConnectedIndexToShowSubChannels => _channelConnectedIndexToShowSubChannels;
 
   String _resMessage = '';
   List<UserChannelModel> _userChannels = [];
@@ -200,8 +203,14 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  showSubChannelsAtIndex(int channelIndex) {
-    _channelIndexToShowSubChannels = channelIndex;
+  showCreatedSubChannelsAtIndex(int channelIndex) {
+    _channelCreatedIndexToShowSubChannels = channelIndex;
+    print("New index $channelIndex");
+    notifyListeners();
+  }
+
+  showConnectedSubChannelsAtIndex(int channelIndex) {
+    _channelConnectedIndexToShowSubChannels = channelIndex;
     print("New index $channelIndex");
     notifyListeners();
   }
@@ -537,7 +546,8 @@ class ChannelProvider extends ChangeNotifier {
 
       if (doc.exists) {
         print("Good to go");
-      } else {
+
+      }else {
         await channelsCollection
             .doc(selectedChannel.channelId)
             .collection('subChannel')
@@ -552,7 +562,6 @@ class ChannelProvider extends ChangeNotifier {
           'userFullName': fullName,
           "isAdmin": false,
         });
-        print('Not found');
       }
     } catch (e) {
       // print("Error: ${e.toString()}");

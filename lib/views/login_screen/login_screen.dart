@@ -26,8 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void initState() {
-    emailController.text = "eli@gmail.com";
-    passwordController.text = "smart001";
+    // emailController.text = "eli@gmail.com";
+    // passwordController.text = "smart001";
     super.initState();
   }
   @override
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       CustomTextField(
                         controller: emailController,
                         hint: AppStrings.email,
-                        labelText: AppStrings.enterChannelName,
+                        labelText: AppStrings.emailAddress,
                       ),
                       SizedBox(height: AppSize.s9.h,),
                       CustomTextField(
