@@ -49,40 +49,42 @@ class _OnBoardingViewState extends State<OnBoardingView> {
               itemCount: pages.length,
             ),
           ),
-          Positioned(
-            top: AppSize.s720,
-            left: AppSize.s170,
-            child: SizedBox(
-              height: AppSize.s19,
-              width: MediaQuery.of(context).size.width,
-              child: ListView.builder(
-                itemCount: pages.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(3.0),
-                    child: InkWell(
-                      onTap: () {
-                        controller.jumpToPage(index);
+          currentPageIndex == 2
+              ? SizedBox()
+              : Positioned(
+                  top: AppSize.s720,
+                  left: AppSize.s170,
+                  child: SizedBox(
+                    height: AppSize.s19,
+                    width: MediaQuery.of(context).size.width,
+                    child: ListView.builder(
+                      itemCount: pages.length,
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: InkWell(
+                            onTap: () {
+                              controller.jumpToPage(index);
+                            },
+                            child: ClipOval(
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: currentPageIndex == index
+                                          ? ColorManager.primaryColor
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                          color: ColorManager.primaryColor)),
+                                  height: AppSize.s20,
+                                  width: AppSize.s20),
+                            ),
+                          ),
+                        );
                       },
-                      child: ClipOval(
-                        child: Container(
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: currentPageIndex == index
-                                    ? ColorManager.primaryColor
-                                    : Colors.transparent,
-                                border: Border.all(
-                                    color: ColorManager.primaryColor)),
-                            height: AppSize.s20,
-                            width: AppSize.s20),
-                      ),
                     ),
-                  );
-                },
-              ),
-            ),
-          ),
+                  ),
+                ),
         ],
       ),
     );

@@ -7,6 +7,7 @@ class AppStrings {
   static const orWhyDontYou = "or why don't you";
   static const whenYouSimplyDont = "when you simply don’t";
   static const wantToTalk =  "want to talk. Just push";
+  static const youAreTalking =  "You are talking...";
   static const toStartChatting = "to start chatting.";
   static const getAnAccount = "get an account";
   static const getStarted = "get started";

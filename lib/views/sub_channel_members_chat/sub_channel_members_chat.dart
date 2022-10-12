@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
+import 'package:walkie_talkie_360/resources/strings_manager.dart';
 import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
@@ -141,11 +142,8 @@ class _AudioStreamingState extends State<AudioStreaming> {
                 return aDate.compareTo(bDate);
               });
 
-              if (records[records.length - 1].record == null ||
-                  records[records.length - 1].record == '') {
-                if (kDebugMode) {
-                  print("The path is empty");
-                }
+              if (records.isEmpty) {
+                print("Records is empty for now");
               } else {
                 channelProvider
                     .downloadEncryptedFile(
@@ -219,8 +217,10 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
                   snapshot.data.docs != null &&
                   snapshot.data.docs.isNotEmpty) {
                 return CustomTextWithLineHeight(
-                    text:
-                        "${snapshot.data.docs[0]['userFullName']} is talking...",
+                    text: snapshot.data.docs[0]['userFullName'] ==
+                            widget.authProvider.userInfo.fullName
+                        ? AppStrings.youAreTalking
+                        : "${snapshot.data.docs[0]['userFullName']} is talking...",
                     textColor: ColorManager.textColor);
               }
               return CustomTextWithLineHeight(
