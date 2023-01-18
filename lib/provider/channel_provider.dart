@@ -709,55 +709,113 @@ class ChannelProvider extends ChangeNotifier {
     _isRecording = false;
     notifyListeners();
 
-    encryptFile().then((result) async {
-      try {
-        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-        _isSuccessful = true;
-        await firebaseStorage
-            .ref('records')
-            .child(_selectedChannel!.channelId)
-            .child(FirebaseAuth.instance.currentUser!.uid)
-            .child(_encryptedFilePath.substring(
-                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
-            .putFile(File(result.path))
-            .then((result) async {
-          var url = await (result).ref.getDownloadURL();
-          var uploadedUrl = url.toString();
-          notifyListeners();
-          cloudNakedURL = uploadedUrl;
-          notifyListeners();
-        });
-      } on FirebaseException catch (e) {
-        _isSuccessful = false;
-        _resMessage =
-            "Could not send!', 'Error occurred while sending message, please check your connection.";
-        if (kDebugMode) {
-          print(e.toString());
-        }
-      } finally {
-        if (_isSuccessful) {
-          Map<String, dynamic> _lastMessageInfo = {
-            'lastMessageTime': int.parse(_recordTime),
-          };
-          await updateLastMessageInfo(
-              _lastMessageInfo, _selectedChannel!.channelId);
-
-          await addMessage(
-            _selectedChannel!.channelId,
-            Message(
-                record: cloudNakedURL,
-                sendBy: user,
-                time: int.parse(_recordTime),
-                timeStamp: DateTime.now()),
-          );
-          if (kDebugMode) {
-            print("Uploaded Successfully");
-          }
-        }
-        _isUploading = false;
+    try {
+          FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+          _isSuccessful = true;
+          await firebaseStorage
+              .ref('records')
+              .child(_selectedChannel!.channelId)
+              .child(FirebaseAuth.instance.currentUser!.uid)
+              .child(_filePath.substring(
+                  _filePath.lastIndexOf('/'), _filePath.length))
+              .putFile(File(_filePath))
+              .then((result) async {
+            var url = await (result).ref.getDownloadURL();
+            var uploadedUrl = url.toString();
+            notifyListeners();
+            cloudNakedURL = uploadedUrl;
+            notifyListeners();
+          });
+    } on FirebaseException catch (e) {
+      FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+      _isSuccessful = true;
+      await firebaseStorage
+          .ref('records')
+          .child(_selectedChannel!.channelId)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .child(_filePath.substring(
+          _filePath.lastIndexOf('/'), _filePath.length))
+          .putFile(File(_filePath))
+          .then((result) async {
+        var url = await (result).ref.getDownloadURL();
+        var uploadedUrl = url.toString();
         notifyListeners();
+        cloudNakedURL = uploadedUrl;
+        notifyListeners();
+      });
+    }  finally {
+      if (_isSuccessful) {
+        Map<String, dynamic> _lastMessageInfo = {
+          'lastMessageTime': int.parse(_recordTime),
+        };
+        await updateLastMessageInfo(
+            _lastMessageInfo, _selectedChannel!.channelId);
+
+        await addMessage(
+          _selectedChannel!.channelId,
+          Message(
+              record: cloudNakedURL,
+              sendBy: user,
+              time: int.parse(_recordTime),
+              timeStamp: DateTime.now()),
+        );
+        if (kDebugMode) {
+          print("Uploaded Successfully");
+        }
       }
-    });
+      _isUploading = false;
+      notifyListeners();
+    }
+
+    // encryptFile().then((result) async {
+    //   try {
+    //     FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+    //     _isSuccessful = true;
+    //     await firebaseStorage
+    //         .ref('records')
+    //         .child(_selectedChannel!.channelId)
+    //         .child(FirebaseAuth.instance.currentUser!.uid)
+    //         .child(_encryptedFilePath.substring(
+    //             _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+    //         .putFile(File(result.path))
+    //         .then((result) async {
+    //       var url = await (result).ref.getDownloadURL();
+    //       var uploadedUrl = url.toString();
+    //       notifyListeners();
+    //       cloudNakedURL = uploadedUrl;
+    //       notifyListeners();
+    //     });
+    //   } on FirebaseException catch (e) {
+    //     _isSuccessful = false;
+    //     _resMessage =
+    //         "Could not send!', 'Error occurred while sending message, please check your connection.";
+    //     if (kDebugMode) {
+    //       print(e.toString());
+    //     }
+    //   } finally {
+    //     if (_isSuccessful) {
+    //       Map<String, dynamic> _lastMessageInfo = {
+    //         'lastMessageTime': int.parse(_recordTime),
+    //       };
+    //       await updateLastMessageInfo(
+    //           _lastMessageInfo, _selectedChannel!.channelId);
+    //
+    //       await addMessage(
+    //         _selectedChannel!.channelId,
+    //         Message(
+    //             record: cloudNakedURL,
+    //             sendBy: user,
+    //             time: int.parse(_recordTime),
+    //             timeStamp: DateTime.now()),
+    //       );
+    //       if (kDebugMode) {
+    //         print("Uploaded Successfully");
+    //       }
+    //     }
+    //     _isUploading = false;
+    //     notifyListeners();
+    //   }
+    // });
   }
 
   sendSubChannelSound({required String user}) async {
@@ -767,93 +825,143 @@ class ChannelProvider extends ChangeNotifier {
     _isRecording = false;
     notifyListeners();
 
-    encryptFile().then((result) async {
-      try {
-        FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-        _isSuccessful = true;
-        await firebaseStorage
-            .ref('records')
-            .child(_selectedSubChannel!.subChannelId)
-            .child(FirebaseAuth.instance.currentUser!.uid)
-            .child(_encryptedFilePath.substring(
-                _filePath.lastIndexOf('/'), _encryptedFilePath.length))
-            .putFile(File(result.path))
-            .then((result) async {
-          var url = await (result).ref.getDownloadURL();
-          var uploadedUrl = url.toString();
-          notifyListeners();
-          cloudNakedURL = uploadedUrl;
-          notifyListeners();
-        });
-      } on FirebaseException catch (e) {
-        _isSuccessful = false;
-        _resMessage =
-            "Could not send!', 'Error occurred while sending message, please check your connection.";
-        if (kDebugMode) {
-          print(e.toString());
-        }
-      } finally {
-        if (_isSuccessful) {
-          Map<String, dynamic> _lastMessageInfo = {
-            'lastMessageTime': int.parse(_recordTime),
-          };
-          await updateLastSubChannelMessageInfo(
-              _lastMessageInfo, _selectedSubChannel!.subChannelId);
-
-          await addSubChannelMessage(
-            _selectedSubChannel!.subChannelId,
-            Message(
-                record: cloudNakedURL,
-                sendBy: user,
-                time: int.parse(_recordTime),
-                timeStamp: DateTime.now()),
-          );
-          if (kDebugMode) {
-            print("Uploaded Successfully");
-          }
-        }
-        _isUploading = false;
+    try {
+      FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+      _isSuccessful = true;
+      await firebaseStorage
+          .ref('records')
+          .child(_selectedSubChannel!.subChannelId)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .child(_filePath.substring(
+          _filePath.lastIndexOf('/'), _filePath.length))
+          .putFile(File(_filePath))
+          .then((result) async {
+        var url = await (result).ref.getDownloadURL();
+        var uploadedUrl = url.toString();
         notifyListeners();
+        cloudNakedURL = uploadedUrl;
+        notifyListeners();
+      });
+    } on FirebaseException catch (e) {
+      _isSuccessful = false;
+      _resMessage =
+      "Could not send!', 'Error occurred while sending message, please check your connection.";
+      if (kDebugMode) {
+        print(e.toString());
       }
-    });
+    } finally {
+      if (_isSuccessful) {
+        Map<String, dynamic> _lastMessageInfo = {
+          'lastMessageTime': int.parse(_recordTime),
+        };
+        await updateLastSubChannelMessageInfo(
+            _lastMessageInfo, _selectedSubChannel!.subChannelId);
+
+        await addSubChannelMessage(
+          _selectedSubChannel!.subChannelId,
+          Message(
+              record: cloudNakedURL,
+              sendBy: user,
+              time: int.parse(_recordTime),
+              timeStamp: DateTime.now()),
+        );
+        if (kDebugMode) {
+          print("Uploaded Successfully");
+        }
+      }
+      _isUploading = false;
+      notifyListeners();
+    }
+
+
+
+    // encryptFile().then((result) async {
+    //   try {
+    //     FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+    //     _isSuccessful = true;
+    //     await firebaseStorage
+    //         .ref('records')
+    //         .child(_selectedSubChannel!.subChannelId)
+    //         .child(FirebaseAuth.instance.currentUser!.uid)
+    //         .child(_encryptedFilePath.substring(
+    //             _filePath.lastIndexOf('/'), _encryptedFilePath.length))
+    //         .putFile(File(result.path))
+    //         .then((result) async {
+    //       var url = await (result).ref.getDownloadURL();
+    //       var uploadedUrl = url.toString();
+    //       notifyListeners();
+    //       cloudNakedURL = uploadedUrl;
+    //       notifyListeners();
+    //     });
+    //   } on FirebaseException catch (e) {
+    //     _isSuccessful = false;
+    //     _resMessage =
+    //         "Could not send!', 'Error occurred while sending message, please check your connection.";
+    //     if (kDebugMode) {
+    //       print(e.toString());
+    //     }
+    //   } finally {
+    //     if (_isSuccessful) {
+    //       Map<String, dynamic> _lastMessageInfo = {
+    //         'lastMessageTime': int.parse(_recordTime),
+    //       };
+    //       await updateLastSubChannelMessageInfo(
+    //           _lastMessageInfo, _selectedSubChannel!.subChannelId);
+    //
+    //       await addSubChannelMessage(
+    //         _selectedSubChannel!.subChannelId,
+    //         Message(
+    //             record: cloudNakedURL,
+    //             sendBy: user,
+    //             time: int.parse(_recordTime),
+    //             timeStamp: DateTime.now()),
+    //       );
+    //       if (kDebugMode) {
+    //         print("Uploaded Successfully");
+    //       }
+    //     }
+    //     _isUploading = false;
+    //     notifyListeners();
+    //   }
+    // });
   }
 
-  Future downloadEncryptedFile({required String url}) async {
-    return await DefaultCacheManager().downloadFile(url);
-  }
+  // Future downloadEncryptedFile({required String url}) async {
+  //   return await DefaultCacheManager().downloadFile(url);
+  // }
 
-  encryptFile() async {
-    Directory directory = await getApplicationDocumentsDirectory();
-    String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
-
-    _encryptedFilePath = encryptedFilePath;
-
-    FileCryptor fileCryptor = FileCryptor(
-      key: encryptionKey,
-      iv: 16,
-      dir: _encryptedFilePath,
-    );
-    File encryptedFile = await fileCryptor.encrypt(
-        inputFile: _filePath, outputFile: _encryptedFilePath);
-    return encryptedFile.absolute;
-  }
-
-  decryptFile({required encryptedFile}) async {
-    _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
-    Directory directory = await getApplicationDocumentsDirectory();
-    String decryptedFilePath = directory.path + '/' + _recordTime + '.mp4';
-
-    _decryptedFilePath = decryptedFilePath;
-
-    FileCryptor fileCryptor = FileCryptor(
-      key: encryptionKey,
-      iv: 16,
-      dir: _decryptedFilePath,
-    );
-    File decryptedFile = await fileCryptor.decrypt(
-        inputFile: encryptedFile, outputFile: _decryptedFilePath);
-    return decryptedFile.absolute.path;
-  }
+  // encryptFile() async {
+  //   Directory directory = await getApplicationDocumentsDirectory();
+  //   String encryptedFilePath = directory.path + '/' + "encryptedSound" + '.aes';
+  //
+  //   _encryptedFilePath = encryptedFilePath;
+  //
+  //   FileCryptor fileCryptor = FileCryptor(
+  //     key: encryptionKey,
+  //     iv: 16,
+  //     dir: _encryptedFilePath,
+  //   );
+  //   File encryptedFile = await fileCryptor.encrypt(
+  //       inputFile: _filePath, outputFile: _encryptedFilePath);
+  //   return encryptedFile.absolute;
+  // }
+  //
+  // decryptFile({required encryptedFile}) async {
+  //   _recordTime = DateTime.now().millisecondsSinceEpoch.toString();
+  //   Directory directory = await getApplicationDocumentsDirectory();
+  //   String decryptedFilePath = directory.path + '/' + _recordTime + '.mp4';
+  //
+  //   _decryptedFilePath = decryptedFilePath;
+  //
+  //   FileCryptor fileCryptor = FileCryptor(
+  //     key: encryptionKey,
+  //     iv: 16,
+  //     dir: _decryptedFilePath,
+  //   );
+  //   File decryptedFile = await fileCryptor.decrypt(
+  //       inputFile: encryptedFile, outputFile: _decryptedFilePath);
+  //   return decryptedFile.absolute.path;
+  // }
 
   deleteChannelPlayedSound({required String currentDocId}) {
     try {
@@ -873,7 +981,6 @@ class ChannelProvider extends ChangeNotifier {
       }
     }
   }
-
 
 
   deleteSubChannelPlayedSound({required String currentDocId}) {

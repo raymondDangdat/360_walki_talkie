@@ -149,32 +149,30 @@ class _AudioStreamingState extends State<AudioStreaming> {
                   int bDate = b.timeStamp.microsecondsSinceEpoch;
                   return aDate.compareTo(bDate);
                 });
-                channelProvider
-                    .downloadEncryptedFile(
-                        url: records[records.length - 1].record)
-                    .then((value) {
-                  channelProvider
-                      .decryptFile(encryptedFile: value.file.path)
-                      .then((result) async {
-                    final player = AudioPlayer();
-                    await player.play(UrlSource(result));
-                    channelProvider.deleteChannelPlayedSound(
-                        currentDocId: records[records.length - 1].id);
-                  });
-                });
-                channelProvider
-                    .downloadEncryptedFile(
-                        url: records[records.length - 1].record)
-                    .then((value) {
-                  channelProvider
-                      .decryptFile(encryptedFile: value.file.path)
-                      .then((result) async {
-                    final player = AudioPlayer();
-                    await player.play(UrlSource(result));
-                    channelProvider.deleteChannelPlayedSound(
-                        currentDocId: records[records.length - 1].id);
-                  });
-                });
+
+                playAudio( ) async  {
+                  final player = AudioPlayer();
+                  await player.play(UrlSource(records[records.length - 1].record));
+                  channelProvider.deleteChannelPlayedSound(
+                      currentDocId: records[records.length - 1].id);
+                }
+
+                playAudio();
+
+                // channelProvider
+                //     .downloadEncryptedFile(
+                //         url: records[records.length - 1].record)
+                //     .then((value) {
+                //   channelProvider
+                //       .decryptFile(encryptedFile: value.file.path)
+                //       .then((result) async {
+                //     final player = AudioPlayer();
+                //     await player.play(UrlSource(result));
+                //     channelProvider.deleteChannelPlayedSound(
+                //         currentDocId: records[records.length - 1].id);
+                //   });
+                // });
+
               }
               return const SizedBox();
             });

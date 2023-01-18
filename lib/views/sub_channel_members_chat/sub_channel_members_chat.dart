@@ -145,19 +145,28 @@ class _AudioStreamingState extends State<AudioStreaming> {
               if (records.isEmpty) {
                 print("Records is empty for now");
               } else {
-                channelProvider
-                    .downloadEncryptedFile(
-                        url: records[records.length - 1].record)
-                    .then((value) {
-                  channelProvider
-                      .decryptFile(encryptedFile: value.file.path)
-                      .then((result) async {
-                    final player = AudioPlayer();
-                    await player.play(UrlSource(result));
-                    channelProvider.deleteSubChannelPlayedSound(
-                        currentDocId: records[records.length - 1].id);
-                  });
-                });
+                playAudio() async {
+                  final player = AudioPlayer();
+                  await player
+                      .play(UrlSource(records[records.length - 1].record));
+                  channelProvider.deleteSubChannelPlayedSound(
+                      currentDocId: records[records.length - 1].id);
+                }
+                playAudio();
+
+                // channelProvider
+                //     .downloadEncryptedFile(
+                //         url: records[records.length - 1].record)
+                //     .then((value) {
+                //   channelProvider
+                //       .decryptFile(encryptedFile: value.file.path)
+                //       .then((result) async {
+                //     final player = AudioPlayer();
+                //     await player.play(UrlSource(result));
+                //     channelProvider.deleteSubChannelPlayedSound(
+                //         currentDocId: records[records.length - 1].id);
+                //   });
+                // });
               }
               return const SizedBox();
             });
