@@ -8,6 +8,7 @@ import 'package:walkie_talkie_360/widgets/custom_text.dart';
 
 import '../../../resources/value_manager.dart';
 import '../../../widgets/nav_screens_header.dart';
+import '../../manage_messages/messages_widget.dart';
 
 class MessageView extends StatelessWidget {
   const MessageView({Key? key}) : super(key: key);
@@ -17,31 +18,7 @@ class MessageView extends StatelessWidget {
     return SafeArea(
       child: Column(
         children: [
-          // SizedBox(height: AppSize.s20.h,),
-          // const NavScreensHeader(),
-
-          SizedBox(height: AppSize.s94.h,),
-
-          CustomTextWithLineHeight(text: AppStrings.userName, textColor: ColorManager.textColor,),
-
-          SizedBox(height: AppSize.s50.h,),
-
-          SvgPicture.asset(AppImages.tapToTalk),
-
-          SizedBox(height: AppSize.s50.h,),
-          
-          Expanded(child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSize.s33),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SvgPicture.asset(AppImages.speaker),
-                SvgPicture.asset(AppImages.option),
-
-              ],
-            ),
-          ))
-
+          MessagesWidget(),
         ],
       ),
     );

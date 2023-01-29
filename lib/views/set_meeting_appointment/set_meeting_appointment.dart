@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:walkie_talkie_360/models/appointment_model.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
@@ -20,6 +21,7 @@ import '../../resources/navigation_utils.dart';
 import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/customDrawer.dart';
+import '../../widgets/custom_dropdown.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
 
@@ -42,20 +44,6 @@ class _SetMeetingAppointmentState extends State<SetMeetingAppointment> {
   List<UserChannelModel> searchList = [];
   QuerySnapshot? channelSnapshot;
 
-  // void getAllChannels() async {
-  //
-  //
-  //   await getChannels().then((value) {
-  //     channelSnapshot = value;
-  //     allChannels = channelSnapshot!.docs
-  //         .map((doc) => SearchChannelModel.fromSnapshot(doc))
-  //         .toList();
-  //     print("Channels length: ${allChannels.length}");
-  //     isSearching = false;
-  //     setState(() {});
-  //   });
-  // }
-
   getChannels() async {
     return await FirebaseFirestore.instance.collection("channelNames").get();
   }
@@ -76,100 +64,191 @@ class _SetMeetingAppointmentState extends State<SetMeetingAppointment> {
 
   String selectedDay = '';
 
+  String? selectedDayOfWeek = 'Monday';
+  String? selectedHourOfDay = '12';
+  String? selectedMinuteOfDay = '35';
+  String? selectedAmPmOfDay = 'pm';
+  String? selectedPattern = 'weekly';
+  String? selectedChannel;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: ColorManager.bgColor,
         body: SafeArea(
-            child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                height: AppSize.s20.h,
-              ),
-              NavScreen3(
-                title: AppStrings.setAppointment,
-                positionSize: AppSize.s200,
-              ),
-              SizedBox(
-                height: AppSize.s80.h,
-              ),
-              SvgPicture.asset(AppImages.clock),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppPadding.p10),
-                child: CustomText(
-                  text: AppStrings.setAlarm,
-                  fontSize: AppSize.s30,
-                  textColor: ColorManager.primaryColor,
+            child: Stack(
+          fit: StackFit.loose,
+          children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding:  EdgeInsets.only(bottom: 20.h),
+                child: SvgPicture.asset(
+                  AppImages.clock,
+                  color: ColorManager.whiteColor.withOpacity(.15),
+                  height: AppSize.s300.h,
                 ),
               ),
-              SizedBox(
-                height: AppSize.s25.h,
+            ),
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: AppSize.s20.h,
+                  ),
+                  NavScreen3(
+                    title: AppStrings.setAppointment,
+                    positionSize: AppSize.s200,
+                  ),
+                  SizedBox(
+                    height: AppSize.s40.h,
+                  ),
+                  SvgPicture.asset(AppImages.clock),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppPadding.p10),
+                    child: CustomText(
+                      text: AppStrings.setAlarm,
+                      fontSize: AppSize.s30,
+                      textColor: ColorManager.primaryColor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: AppSize.s20.h,
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppPadding.p30),
+                    child: SizedBox(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: daysOfWeekList,
+                              value: 'day',
+                              selectedValue: selectedDayOfWeek,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedDayOfWeek = value as String;
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: hoursList,
+                              value: 'value',
+                              selectedValue: selectedHourOfDay,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedHourOfDay = value as String;
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: minutesList,
+                              value: 'value',
+                              selectedValue: selectedMinuteOfDay,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedMinuteOfDay = value as String;
+                                });
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: amPmList,
+                              value: 'value',
+                              selectedValue: selectedAmPmOfDay,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedAmPmOfDay = value as String;
+                                });
+                              },
+                            ),
+                          )
+                        ])),
+                  ),
+                  SizedBox(height: AppSize.s20.h),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppPadding.p30),
+                    child: SizedBox(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: dummyChannels,
+                              value: 'title',
+                              selectedValue: selectedChannel,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedChannel = value as String;
+                                });
+                              },
+                            ),
+                          ),
+                        ])),
+                  ),
+                  SizedBox(height: AppSize.s20.h),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppPadding.p30),
+                    child: SizedBox(
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                          Expanded(
+                            child: customDropdown(
+                              dropdownList: pattern,
+                              value: 'day',
+                              selectedValue: selectedPattern,
+                              onTap: (value) {
+                                setState(() {
+                                  selectedPattern = value as String;
+                                });
+                              },
+                            ),
+                          ),
+                        ])),
+                  ),
+                  SizedBox(
+                    height: AppSize.s20.h,
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppPadding.p30),
+                    child: Container(
+                      height: AppSize.s35.h,
+                      decoration: BoxDecoration(
+                        color: ColorManager.primaryColor,
+                        border: Border.all(color: ColorManager.primaryColor),
+                        borderRadius: BorderRadius.circular(AppSize.s20.r),
+                      ),
+                      child: InkWell(
+                          onTap: () {},
+                          child: Center(
+                            child: CustomText(
+                              text: AppStrings.bookAppointment,
+                              fontSize: FontSize.s14,
+                              textColor: ColorManager.blackTextColor,
+                            ),
+                          )),
+                    ),
+                  ),
+                ],
               ),
-             
-              SizedBox(
-                  child: Row(children: [
-                // DropdownButtonHideUnderline(
-                //   child: DropdownButton2(
-                //     isExpanded: true,
-                //     hint: Row(
-                //       children: const [
-                //         Expanded(
-                //             child: DropdownButtonHint(
-                //               hint: AppStrings.channelType,)),
-                //       ],
-                //     ),
-                //     items: daysOfWeekList
-                //         .map((item) => DropdownMenuItem<Object>(
-                //         value: item,
-                //         child: Row(
-                //           mainAxisAlignment:
-                //           MainAxisAlignment.spaceBetween,
-                //           children: [
-                //             DropdownButtonText(
-                //                 text: item['day']),
-                //           ],
-                //         )))
-                //         .toList(),
-                //     value: selectedDay,
-                //     onChanged: (value) {
-                //       setState(() {
-                //         selectedDay = value as String;
-                //       });
-                //     },
-                //     icon: SvgPicture.asset(AppImages.dropdownIcon),
-                //     iconSize: 14,
-                //     buttonHeight: 50,
-                //     buttonPadding:
-                //     const EdgeInsets.only(left: 14, right: 14),
-                //     buttonDecoration: BoxDecoration(
-                //       borderRadius:
-                //       BorderRadius.circular(AppSize.s6.r),
-                //       border: Border.all(
-                //         color: ColorManager.textColor,
-                //       ),
-                //       color: ColorManager.bgColor,
-                //     ),
-                //     itemHeight: 40,
-                //     dropdownPadding: null,
-                //     dropdownDecoration: BoxDecoration(
-                //       borderRadius:
-                //       BorderRadius.circular(AppSize.s4.r),
-                //       color: ColorManager.deepOrange,
-                //     ),
-                //     dropdownElevation: 8,
-                //     selectedItemHighlightColor:
-                //     ColorManager.bgColor,
-                //     scrollbarAlwaysShow: false,
-                //     offset: const Offset(0, 0),
-                //   ),
-                // )
-              ])),
-              SizedBox(
-                height: AppSize.s20.h,
-              )
-            ],
-          ),
+            ),
+          ],
         )));
   }
 

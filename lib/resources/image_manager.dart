@@ -36,6 +36,7 @@ class AppImages {
   static const tapToTalk = "assets/images/tap_to _speak.svg";
   static const speaker = "assets/images/speaker.svg";
   static const option = "assets/images/option.svg";
+  static const qrcode = "assets/images/icons/qrcode.svg";
   static const howItWorksTalkie = "assets/images/how_it_works_walkie.png";
   static const howItWorksTalkieSmall = "assets/images/walkie_how_it_works_small.png";
   static const backButtonBg = "assets/images/back_button_bg.png";

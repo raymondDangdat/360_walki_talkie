@@ -210,7 +210,7 @@ packages:
       name: dropdown_button2
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.1"
+    version: "1.9.2"
   encrypt:
     dependency: transitive
     description:
@@ -1036,6 +1036,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.2"
+  volume_controller:
+    dependency: "direct main"
+    description:
+      name: volume_controller
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.6"
   win32:
     dependency: transitive
     description:

@@ -316,10 +316,10 @@ class _MessageChatState extends State<MessageChat> {
                         ),
                       ),
                       SizedBox(
-                        width: AppSize.s16.w,
+                        width: AppSize.s10.w,
                       ),
                       SvgPicture.asset(
-                          "assets/images/icon/send_chat_button.svg")
+                          "assets/images/icons/paper-plane.svg", height: 25, color: ColorManager.bgColor,)
                     ],
                   ),
                 )))

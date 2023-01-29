@@ -14,6 +14,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:walkie_talkie_360/models/channel_model.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
+import 'package:walkie_talkie_360/widgets/customDrawer.dart';
 import 'package:walkie_talkie_360/widgets/custom_text.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 import '../../../resources/color_manager.dart';
@@ -32,6 +33,7 @@ class CreateQRCode extends StatefulWidget {
 
 class _CreateQRCodeState extends State<CreateQRCode> {
   ScreenshotController screenshotController = ScreenshotController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +41,8 @@ class _CreateQRCodeState extends State<CreateQRCode> {
 
     return Scaffold(
       backgroundColor: ColorManager.bgColor,
+      key: _scaffoldKey,
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(
@@ -52,7 +56,7 @@ class _CreateQRCodeState extends State<CreateQRCode> {
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [NavScreensHeader()],
+                children:  [NavScreensHeader(onTapDrawer: () { _scaffoldKey.currentState?.openEndDrawer(); },)],
               ),
             ),
             SizedBox(

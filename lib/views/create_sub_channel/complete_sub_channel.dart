@@ -17,6 +17,7 @@ import '../../resources/color_manager.dart';
 import '../../resources/navigation_utils.dart';
 import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
+import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/nav_screens_header.dart';
@@ -41,12 +42,17 @@ class _CompleteSubChannelState extends State<CompleteSubChannel> {
   final channelPasswordController = TextEditingController();
   final channelDescriptionController = TextEditingController();
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
     final channelProvider = context.watch<ChannelProvider>();
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
+      endDrawer: customDrawer(context:  context, fromSecondMenu: false, ),
       body: SafeArea(
           child: Column(
         children: [
@@ -59,7 +65,10 @@ class _CompleteSubChannelState extends State<CompleteSubChannel> {
                     image: AssetImage(AppImages.headerBgImage),
                     fit: BoxFit.cover)),
             alignment: Alignment.center,
-            child: const NavScreensHeader(),
+            child:  NavScreensHeader(onTapDrawer: () {
+              _scaffoldKey.currentState?.openEndDrawer();
+
+            },),
           ),
 
           Expanded(

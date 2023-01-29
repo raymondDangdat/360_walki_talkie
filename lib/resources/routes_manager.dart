@@ -19,6 +19,7 @@ import 'package:walkie_talkie_360/views/new_get_started_screen/new_get_started_s
 import 'package:walkie_talkie_360/views/profile/block_channel.dart';
 import 'package:walkie_talkie_360/views/profile/block_users.dart';
 import 'package:walkie_talkie_360/views/profile/edit_profile.dart';
+import 'package:walkie_talkie_360/views/profile/manage_channel_users.dart';
 import 'package:walkie_talkie_360/views/profile/profile_screen.dart';
 import 'package:walkie_talkie_360/views/profile/reset_password.dart';
 import 'package:walkie_talkie_360/views/set_meeting_appointment/set_meeting_appointment.dart';
@@ -77,6 +78,7 @@ class Routes {
   static const faq = "/faqScreen";
   static const addByQRCode = "/AddByQRCode";
   static const qrRequestSent = "/qrRequestSentScreen";
+  static const manageUsers = "/manageUsers";
 }
 
 class RouteGenerator {
@@ -153,6 +155,9 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const BlockChannels());
       case Routes.blockUser:
         return MaterialPageRoute(builder: (_) => const BlockUsers());
+
+      case Routes.manageUsers:
+        return MaterialPageRoute(builder: (_) => const ManageChannelUsers());
       case Routes.channelMembersChats:
         return MaterialPageRoute(builder: (_) => const ChannelMembersChats());
       case Routes.subChannelMembersChats:

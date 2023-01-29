@@ -8,6 +8,7 @@ import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
+import 'package:walkie_talkie_360/widgets/customDrawer.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
 import '../../models/channel_model.dart';
@@ -74,10 +75,14 @@ class _HelpAndFeedbacksState extends State<HelpAndFeedbacks> {
     });
     super.initState();
   }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       backgroundColor: ColorManager.bgColor,
       body: SafeArea(
           child: SingleChildScrollView(
@@ -92,7 +97,9 @@ class _HelpAndFeedbacksState extends State<HelpAndFeedbacks> {
                   alignment: Alignment.center,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [NavScreensHeader()],
+                    children:  [NavScreensHeader(onTapDrawer: () {
+                      _scaffoldKey.currentState?.openEndDrawer();
+                    },)],
                   ),
                 ),
                 SizedBox(

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/dummy_channels.dart';
 import 'package:walkie_talkie_360/views/nav_screen/qrcode/qrcode.dart';
+import 'package:walkie_talkie_360/widgets/customDrawer.dart';
 
 import '../../models/channel_model.dart';
 import '../../resources/color_manager.dart';
@@ -52,11 +53,16 @@ class _GenerateChannelQrCodeState extends State<GenerateChannelQrCode> {
     super.initState();
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+
   @override
   Widget build(BuildContext context) {
     final channelProvider = context.watch<ChannelProvider>();
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(
@@ -70,7 +76,9 @@ class _GenerateChannelQrCodeState extends State<GenerateChannelQrCode> {
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [NavScreensHeader()],
+                children:  [NavScreensHeader(onTapDrawer: () {
+                  _scaffoldKey.currentState?.openEndDrawer();
+                },)],
               ),
             ),
             SizedBox(

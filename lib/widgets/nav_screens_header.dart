@@ -14,7 +14,9 @@ import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 
 class NavScreensHeader extends StatelessWidget {
-  const NavScreensHeader({Key? key}) : super(key: key);
+  final Function() onTapDrawer;
+  const NavScreensHeader({Key? key, required this.onTapDrawer}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +44,8 @@ class NavScreensHeader extends StatelessWidget {
               fontSize: FontSize.s20,
             ),
           ),
-          SvgPicture.asset(AppImages.menuIcon),
+          IconButton(
+              onPressed: onTapDrawer, icon: SvgPicture.asset(AppImages.menuIcon)),
           SizedBox(
             width: AppSize.s21.w,
           ),
@@ -70,8 +73,7 @@ class NewNavScreen extends StatelessWidget {
       this.menuIconPath,
       this.withTrailing = false,
       this.withLeading = false,
-      this.withDrawer = true
-      })
+      this.withDrawer = true})
       : super(key: key);
 
   @override
@@ -131,8 +133,11 @@ class NewNavScreen extends StatelessWidget {
                 )
               : SizedBox(),
           const Spacer(),
-        withDrawer ?   InkWell(
-              onTap: drawerAction, child: SvgPicture.asset(AppImages.menuIcon)) : SizedBox(),
+          withDrawer
+              ? InkWell(
+                  onTap: drawerAction,
+                  child: SvgPicture.asset(AppImages.menuIcon))
+              : SizedBox(),
           SizedBox(
             width: AppSize.s21.w,
           ),

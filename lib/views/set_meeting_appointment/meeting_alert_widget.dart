@@ -20,16 +20,16 @@ class MeetingAlert extends StatelessWidget {
       required this.onAccept,
       required this.onReject,
       required this.onEnd,
-      required this.controller, required this.endTime})
+      required this.controller,
+      required this.endTime})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
     return Material(
       color: Colors.transparent,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 350),
+        padding: EdgeInsets.only(bottom: 380.h),
         child: Center(
             child: Container(
           height: AppSize.s230.h,

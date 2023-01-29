@@ -4,6 +4,7 @@ class AppStrings {
   static const alert = "alert!";
   static const faq = "frequent asked questions";
   static const faq2 = "faq";
+  static const close = "close";
   static const pushToTalk = "push to talk | walkie talkie app";
   static const toYourTeam = "to your team. simply";
   static const simplyPushToTalk = "push to talk!";
@@ -137,6 +138,7 @@ class AppStrings {
   static const notification = "notification";
   static const blockChannel = "block channel";
   static const blockUser = "block user";
+  static const bookAppointment = "book appointment";
   static const support = "support";
   static const privacy = "privacy";
   static const privacyPolicy = "privacy policy";
@@ -148,12 +150,3 @@ class AppStrings {
   static const returnToDashboard = "return to dashboard";
 }
 
-List daysOfWeekList = [
-  {"id": 0, 'day': 'Monday'},
-  {'id': 1, 'day': 'Tuesday'},
-  {'id': 2, 'day': 'Wednesday'},
-  {'id': 3, 'day': 'Thursday'},
-  {'id': 4, 'day': 'Friday'},
-  {'id': 5, 'day': 'Saturday'},
-  {'id': 6, 'day': 'Sunday'},
-];

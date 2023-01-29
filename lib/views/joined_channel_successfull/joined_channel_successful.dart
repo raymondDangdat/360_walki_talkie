@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
+import 'package:walkie_talkie_360/widgets/customDrawer.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/image_manager.dart';
@@ -16,10 +17,16 @@ import '../../widgets/nav_screens_header.dart';
 class JoinedChannelSuccessful extends StatelessWidget {
   const JoinedChannelSuccessful({Key? key}) : super(key: key);
 
+
+
   @override
   Widget build(BuildContext context) {
+    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
     final authProvider = context.watch<AuthenticationProvider>();
     return Scaffold(
+      key: _scaffoldKey,
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       backgroundColor: ColorManager.bgColor,
       body: SafeArea(child: SingleChildScrollView(
         child: Column(
@@ -33,8 +40,11 @@ class JoinedChannelSuccessful extends StatelessWidget {
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  NavScreensHeader()
+                children:  [
+                  NavScreensHeader(onTapDrawer: () {
+
+                    _scaffoldKey.currentState?.openEndDrawer();
+                  },)
                 ],
               ),
             ),

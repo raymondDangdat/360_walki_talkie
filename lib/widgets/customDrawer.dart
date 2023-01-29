@@ -58,8 +58,7 @@ Drawer customDrawer(
         drawerItem(
             onTap: () {
               Navigator.pop(context);
-              openSetMeetingAppt(
-                  fromSecondMenu: fromSecondMenu, context: context);
+              openManageChannelUsers(context);
             },
             title: AppStrings.manageChannelMembers),
         drawerItem(

@@ -161,6 +161,10 @@ void openBlockUsers(BuildContext context) async {
   Navigator.pushNamed(context, Routes.blockUser);
 }
 
+void openManageChannelUsers(BuildContext context) async {
+  Navigator.pushNamed(context, Routes.manageUsers);
+}
+
 void openSettingScreen(BuildContext context) async {
   Navigator.pushNamed(context, Routes.settingsScreen);
 }
