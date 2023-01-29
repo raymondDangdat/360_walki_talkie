@@ -11,9 +11,10 @@ import 'custom_text.dart';
 class SettingsItem extends StatelessWidget {
   final String title;
   final String iconName;
+  final Function() onTap;
   const SettingsItem({Key? key,
     required this.title,
-    required this.iconName
+    required this.iconName, required this.onTap
   }) : super(key: key);
 
   @override
@@ -27,24 +28,27 @@ class SettingsItem extends StatelessWidget {
           image: DecorationImage(
               image: AssetImage(AppImages.settingaItemsBg))
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                SvgPicture.asset(iconName),
-                SizedBox(width: AppSize.s12.w,),
-                CustomText(
-                  text: title,
-                  fontSize: FontSize.s20,
-                  textColor: ColorManager.blckTxtColor,
-                ),
-              ],
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  SvgPicture.asset(iconName),
+                  SizedBox(width: AppSize.s12.w,),
+                  CustomText(
+                    text: title,
+                    fontSize: FontSize.s20,
+                    textColor: ColorManager.blckTxtColor,
+                  ),
+                ],
+              ),
             ),
-          ),
-          SvgPicture.asset(AppImages.forwardArrowIcon),
-        ],
+            SvgPicture.asset(AppImages.forwardArrowIcon),
+          ],
+        ),
       ),
     );
   }

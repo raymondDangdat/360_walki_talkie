@@ -15,9 +15,14 @@ class AppImages {
   static const walkieTalkiComplete = "assets/images/walkie_talkie_complete.png";
   static const three60Small = "assets/images/360_small.png";
   static const chatIcon = "assets/images/icons/chat_icon.svg";
+  static const chatIcon2 = "assets/images/icons/chat2.svg";
+  static const clock = "assets/images/icons/clock.svg";
+  static const bigClock = "assets/images/icons/bigClock.svg";
+  static const chatIconFill = "assets/images/icons/chatFill.svg";
   static const messageIcon = "assets/images/icons/message.svg";
-  static const contactIocn = "assets/images/icons/contact_icon.svg";
+  static const contactIcon = "assets/images/icons/contact_icon.svg";
   static const channelIcon = "assets/images/icons/channel_icon.svg";
+  static const channelIconPeople = "assets/images/icons/channelPeople.svg";
   static const menuIcon = "assets/images/icons/menu-mobile.svg";
   static const createChannelOptionsBg = "assets/images/create_channel_options.png";
   static const headerBgImage = "assets/images/header_bg.png";
@@ -34,6 +39,7 @@ class AppImages {
   static const howItWorksTalkie = "assets/images/how_it_works_walkie.png";
   static const howItWorksTalkieSmall = "assets/images/walkie_how_it_works_small.png";
   static const backButtonBg = "assets/images/back_button_bg.png";
+  static const arrowLeftSvg = "assets/images/arrowLeft.svg";
   static const arrowLeft = "assets/images/arrow-left.png";
   static const how360Works = "assets/images/how_360_works.png";
   static const smileFace = "assets/images/smile.png";

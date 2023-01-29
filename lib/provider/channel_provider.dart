@@ -34,10 +34,12 @@ class ChannelProvider extends ChangeNotifier {
   bool get isLoadingSubChannels => _isLoadingSubChannels;
 
   int _channelCreatedIndexToShowSubChannels = -1;
-  int get channelCreatedIndexToShowSubChannels => _channelCreatedIndexToShowSubChannels;
+  int get channelCreatedIndexToShowSubChannels =>
+      _channelCreatedIndexToShowSubChannels;
 
   int _channelConnectedIndexToShowSubChannels = -1;
-  int get channelConnectedIndexToShowSubChannels => _channelConnectedIndexToShowSubChannels;
+  int get channelConnectedIndexToShowSubChannels =>
+      _channelConnectedIndexToShowSubChannels;
 
   String _resMessage = '';
   List<UserChannelModel> _userChannels = [];
@@ -118,10 +120,18 @@ class ChannelProvider extends ChangeNotifier {
 
   int get currentId => _currentId;
 
+  bool _isCameraPaused = true;
+  bool get isCameraPaused => _isCameraPaused;
+
   Map<int, int> get currentPosition => _currentPosition;
 
   void updateCurrentPosition(int id, int duration) {
     _currentPosition[id] = duration;
+  }
+
+  void pausePlayQRCamera() async {
+    _isCameraPaused = !_isCameraPaused;
+    notifyListeners();
   }
 
   void onPressedPlayButton(
@@ -546,8 +556,7 @@ class ChannelProvider extends ChangeNotifier {
 
       if (doc.exists) {
         print("Good to go");
-
-      }else {
+      } else {
         await channelsCollection
             .doc(selectedChannel.channelId)
             .collection('subChannel')
@@ -710,31 +719,14 @@ class ChannelProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-          FirebaseStorage firebaseStorage = FirebaseStorage.instance;
-          _isSuccessful = true;
-          await firebaseStorage
-              .ref('records')
-              .child(_selectedChannel!.channelId)
-              .child(FirebaseAuth.instance.currentUser!.uid)
-              .child(_filePath.substring(
-                  _filePath.lastIndexOf('/'), _filePath.length))
-              .putFile(File(_filePath))
-              .then((result) async {
-            var url = await (result).ref.getDownloadURL();
-            var uploadedUrl = url.toString();
-            notifyListeners();
-            cloudNakedURL = uploadedUrl;
-            notifyListeners();
-          });
-    } on FirebaseException catch (e) {
       FirebaseStorage firebaseStorage = FirebaseStorage.instance;
       _isSuccessful = true;
       await firebaseStorage
           .ref('records')
           .child(_selectedChannel!.channelId)
           .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(_filePath.substring(
-          _filePath.lastIndexOf('/'), _filePath.length))
+          .child(
+              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
           .putFile(File(_filePath))
           .then((result) async {
         var url = await (result).ref.getDownloadURL();
@@ -743,7 +735,24 @@ class ChannelProvider extends ChangeNotifier {
         cloudNakedURL = uploadedUrl;
         notifyListeners();
       });
-    }  finally {
+    } on FirebaseException catch (e) {
+      FirebaseStorage firebaseStorage = FirebaseStorage.instance;
+      _isSuccessful = true;
+      await firebaseStorage
+          .ref('records')
+          .child(_selectedChannel!.channelId)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .child(
+              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
+          .putFile(File(_filePath))
+          .then((result) async {
+        var url = await (result).ref.getDownloadURL();
+        var uploadedUrl = url.toString();
+        notifyListeners();
+        cloudNakedURL = uploadedUrl;
+        notifyListeners();
+      });
+    } finally {
       if (_isSuccessful) {
         Map<String, dynamic> _lastMessageInfo = {
           'lastMessageTime': int.parse(_recordTime),
@@ -832,8 +841,8 @@ class ChannelProvider extends ChangeNotifier {
           .ref('records')
           .child(_selectedSubChannel!.subChannelId)
           .child(FirebaseAuth.instance.currentUser!.uid)
-          .child(_filePath.substring(
-          _filePath.lastIndexOf('/'), _filePath.length))
+          .child(
+              _filePath.substring(_filePath.lastIndexOf('/'), _filePath.length))
           .putFile(File(_filePath))
           .then((result) async {
         var url = await (result).ref.getDownloadURL();
@@ -845,7 +854,7 @@ class ChannelProvider extends ChangeNotifier {
     } on FirebaseException catch (e) {
       _isSuccessful = false;
       _resMessage =
-      "Could not send!', 'Error occurred while sending message, please check your connection.";
+          "Could not send!', 'Error occurred while sending message, please check your connection.";
       if (kDebugMode) {
         print(e.toString());
       }
@@ -872,8 +881,6 @@ class ChannelProvider extends ChangeNotifier {
       _isUploading = false;
       notifyListeners();
     }
-
-
 
     // encryptFile().then((result) async {
     //   try {
@@ -981,7 +988,6 @@ class ChannelProvider extends ChangeNotifier {
       }
     }
   }
-
 
   deleteSubChannelPlayedSound({required String currentDocId}) {
     try {

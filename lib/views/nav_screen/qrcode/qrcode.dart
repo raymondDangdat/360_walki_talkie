@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -66,10 +67,10 @@ class _CreateQRCodeState extends State<CreateQRCode> {
                     children: [
                       QrImage(
                         backgroundColor: ColorManager.whiteColor,
-                        data: <String, dynamic>{
+                        data: jsonEncode(<String, dynamic>{
                           "channelId": widget.searchChannelModel.channelId,
                           "title": widget.searchChannelModel.channelName
-                        }.toString(),
+                        }),
                         version: QrVersions.auto,
                         size: 320,
                         gapless: false,
@@ -79,8 +80,8 @@ class _CreateQRCodeState extends State<CreateQRCode> {
                         child: SizedBox(
                           height: AppSize.s50,
                           child: CustomText(
-                            fontSize: AppSize.s15,
-                            fontWeight: FontWeight.bold,
+                              fontSize: AppSize.s15,
+                              fontWeight: FontWeight.bold,
                               text:
                                   "Scan to join ${widget.searchChannelModel.channelName}"),
                         ),

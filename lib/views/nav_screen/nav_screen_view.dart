@@ -12,7 +12,9 @@ import '../../provider/authentication_provider.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/font_manager.dart';
 import '../../resources/image_manager.dart';
+import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
+
 
 class NavScreenView extends StatefulWidget {
   const NavScreenView({Key? key}) : super(key: key);
@@ -22,7 +24,6 @@ class NavScreenView extends StatefulWidget {
 }
 
 class _NavScreenViewState extends State<NavScreenView> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   int _selectedIndex = 0;
   static const List<Widget> _widgetOptions = <Widget>[
@@ -31,6 +32,7 @@ class _NavScreenViewState extends State<NavScreenView> {
     ContactView(),
     ChannelView()
   ];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onItemTapped(int index) {
     setState(() {
@@ -43,49 +45,7 @@ class _NavScreenViewState extends State<NavScreenView> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
-      endDrawer: Drawer(
-        backgroundColor: ColorManager.primaryColor,
-          child: ListView(
-            children: [
-
-              ListTile(
-                onTap: (){
-                  Navigator.pop(context);
-                  openCreateSubChannel(context);
-                },
-                leading: const Icon(Icons.create),
-                title: CustomText(text: AppStrings.createSubChannel,
-                  textColor: ColorManager.blackTextColor,
-                  fontWeight: FontWeight.w300,
-                  fontSize: FontSize.s20,
-                ),
-              ),
-              ListTile(
-                onTap: (){
-                  Navigator.pop(context);
-                  openProfileScreen(context);
-                },
-                leading: const Icon(Icons.account_circle),
-                title: CustomText(text: AppStrings.profile,
-                  textColor: ColorManager.blackTextColor,
-                  fontWeight: FontWeight.w300,
-                  fontSize: FontSize.s20,
-                ),
-              ),
-              ListTile(
-                onTap: (){
-                  Navigator.pop(context);
-                  openSettingScreen(context);
-                },
-                leading: const Icon(Icons.settings),
-                title: CustomText(text: AppStrings.settings,
-                    textColor: ColorManager.blackTextColor,
-                    fontWeight: FontWeight.w300,
-                    fontSize: FontSize.s20,
-              ),)
-            ],
-          ),
-      ),
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       appBar: AppBar(
         backgroundColor: ColorManager.primaryColor,
         title: CustomTextWithLineHeight(text: authProvider.userInfo.fullName,
@@ -123,8 +83,8 @@ class _NavScreenViewState extends State<NavScreenView> {
             backgroundColor: ColorManager.textColor,
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(AppImages.contactIocn),
-            activeIcon: SvgPicture.asset(AppImages.contactIocn),
+            icon: SvgPicture.asset(AppImages.contactIcon),
+            activeIcon: SvgPicture.asset(AppImages.contactIcon),
             label: "",
             backgroundColor: ColorManager.textColor,
           ),

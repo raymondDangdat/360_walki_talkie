@@ -67,7 +67,7 @@ class ChannelView extends StatelessWidget {
                       TextSpan(
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                            openAddChannelByName(context);
+                            openAddChannelByName(context: context, fromSecondMenu: false);
                             },
                           text: AppStrings.clickToContinue, style: TextStyle(fontWeight: FontWeight.w300, color: ColorManager.whiteColor)),
                     ],

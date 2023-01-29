@@ -6,6 +6,7 @@ import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/resources/theme_manager.dart';
 
 import 'provider/channel_provider.dart';
+import 'provider/chat_provider.dart';
 import 'resources/color_manager.dart';
 import 'resources/value_manager.dart';
 import 'resources/routes_manager.dart';
@@ -26,6 +27,7 @@ void main() async{
     providers: [
       ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
       ChangeNotifierProvider(create: (_) => ChannelProvider()),
+      ChangeNotifierProvider(create: (_) => ChatProvider()),
     ],
     child: const MyApp(),
   ));
@@ -41,6 +43,7 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         builder: (_, child) => MaterialApp(
           debugShowCheckedModeBanner: false,
+          navigatorKey: RouteGenerator.navigatorKey,
           onGenerateRoute: RouteGenerator.getRoute,
           initialRoute: Routes.initialRoute,
           theme: getApplicationTheme(),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -7,7 +8,6 @@ import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
-import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
 import 'package:walkie_talkie_360/widgets/reusable_widget.dart';
 
 import '../../models/channel_model.dart';
@@ -18,17 +18,18 @@ import '../../resources/image_manager.dart';
 import '../../resources/navigation_utils.dart';
 import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
+import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
 
-class CreateSubChannel extends StatefulWidget {
-  const CreateSubChannel({Key? key}) : super(key: key);
+class AddChannelByName extends StatefulWidget {
+  const AddChannelByName({Key? key}) : super(key: key);
 
   @override
-  State<CreateSubChannel> createState() => _CreateSubChannelState();
+  State<AddChannelByName> createState() => _AddChannelByNameState();
 }
 
-class _CreateSubChannelState extends State<CreateSubChannel> {
+class _AddChannelByNameState extends State<AddChannelByName> {
   final channelNameController = TextEditingController();
 
   bool channelNameFound = false;
@@ -36,49 +37,41 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
   String channelName = "";
   String channelId = "";
 
-  List<UserChannelModel> allChannels = [];
-  List<UserChannelModel> searchList = [];
+  List<SearchChannelModel> allChannels = [];
+  List<SearchChannelModel> searchList = [];
   QuerySnapshot? channelSnapshot;
 
-  // void getAllChannels() async {
-  //
-  //
-  //   await getChannels().then((value) {
-  //     channelSnapshot = value;
-  //     allChannels = channelSnapshot!.docs
-  //         .map((doc) => SearchChannelModel.fromSnapshot(doc))
-  //         .toList();
-  //     print("Channels length: ${allChannels.length}");
-  //     isSearching = false;
-  //     setState(() {});
-  //   });
-  // }
+  void getAllChannels() async {
+    await getChannels().then((value) {
+      channelSnapshot = value;
+      allChannels = channelSnapshot!.docs
+          .map((doc) => SearchChannelModel.fromSnapshot(doc))
+          .toList();
+      print("Channels length: ${allChannels.length}");
+      isSearching = false;
+      setState(() {});
+    });
+  }
 
   getChannels() async {
     return await FirebaseFirestore.instance.collection("channelNames").get();
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      final auth =
-      Provider.of<AuthenticationProvider>(context, listen: false);
-
-      allChannels.addAll(auth.userChannelsConnected);
-      allChannels.addAll(auth.userChannelsCreated);
-
-
-    });
-    setState(() {
-
-    });
+    getAllChannels();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
+      endDrawer: customDrawer(context: context, fromSecondMenu: false),
       body: SafeArea(
           child: SingleChildScrollView(
         child: Column(
@@ -92,7 +85,14 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
               alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [NavScreensHeader()],
+                children: [
+                  NewNavScreen(
+                    menuTitle: AppStrings.joinChannel,
+                    drawerAction: () {
+                      _scaffoldKey.currentState?.openEndDrawer();
+                    },
+                  )
+                ],
               ),
             ),
             SizedBox(
@@ -103,7 +103,7 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
               height: AppSize.s19.h,
             ),
             CustomTextWithLineHeight(
-              text: AppStrings.addASubChannelByName,
+              text: AppStrings.addAChannelByName,
               textColor: ColorManager.textColor,
             ),
             SizedBox(
@@ -127,6 +127,7 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                         onChanged: (String value) {
                           setState(() {
                             isSearching = true;
+
                             if (allChannels.isNotEmpty && value.isNotEmpty) {
                               searchList = allChannels
                                   .where((element) => element.channelName
@@ -148,8 +149,8 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                         decoration: InputDecoration(
                             filled: true,
                             fillColor: ColorManager.bgColor,
-                            hintText: AppStrings.chooseChannelName,
-                            labelText: AppStrings.chooseChannelName,
+                            hintText: AppStrings.enterChannelName,
+                            labelText: AppStrings.enterChannelName,
                             counterText: "",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5.r),
@@ -199,14 +200,6 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                                 channelNameFound = true;
                                 channelId = channel.channelId;
                                 channelName = channel.channelName;
-                                final channelModel = UserChannelModel(
-                                    userId: '',
-                                    channelId: channel.channelId,
-                                    channelName: channel.channelName,
-                                    isCreated: false);
-                                context
-                                    .read<ChannelProvider>()
-                                    .setSelectedChannel(channelModel);
                                 searchList = [];
                               });
                             },
@@ -233,50 +226,60 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                     height: AppSize.s30.h,
                   ),
                   CustomTextWithLineHeight(
-                    text: AppStrings.ifYouKnowTheSubChannelName,
+                    text: AppStrings.ifYouKnowTheChannelName,
                     textColor: ColorManager.textColor,
                   ),
                   SizedBox(
                     height: AppSize.s45.h,
                   ),
+                  Consumer<ChannelProvider>(
+                      builder: (ctx, channelProvider, child) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (channelProvider.resMessage != '') {
+                        showTopSnackBar(
+                          context,
+                          CustomSnackBar.info(
+                            message: channelProvider.resMessage,
+                            backgroundColor: ColorManager.primaryColor,
+                          ),
+                        );
 
+                        ///Clear the response message to avoid duplicate
+                        channelProvider.clear();
+                      }
+                    });
+                    return WalkieButton(
+                        height: AppSize.s51.h,
+                        width: AppSize.s255.w,
+                        context: context,
+                        onTap: () async {
+                          if (channelNameFound) {
+                            final bool isAdded = await channelProvider
+                                .createChannelFromChannelName(context,
+                                    channelName, channelId, authProvider);
+
+                            if (isAdded) {
+                              authProvider.updateChannelNameJoined(channelName);
+                              authProvider.getUserChannels(
+                                  FirebaseAuth.instance.currentUser!.uid);
+
+                              openChannelJoinedScreen(context);
+                            }
+                          } else {
+                            showTopSnackBar(
+                              context,
+                              CustomSnackBar.info(
+                                message: "No Channel found yet",
+                                backgroundColor: ColorManager.primaryColor,
+                              ),
+                            );
+                          }
+                        },
+                        title: AppStrings.joinChannel);
+                  })
                 ],
               ),
-            ),
-            Consumer<ChannelProvider>(
-                builder: (ctx, channelProvider, child) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (channelProvider.resMessage != '') {
-                      showTopSnackBar(
-                        context,
-                        CustomSnackBar.info(
-                          message: channelProvider.resMessage,
-                          backgroundColor: ColorManager.primaryColor,
-                        ),
-                      );
-                      ///Clear the response message to avoid duplicate
-                      channelProvider.clear();
-                    }
-                  });
-                  return WalkieButton(
-                      height: AppSize.s51.h,
-                      width: AppSize.s290.w,
-                      context: context,
-                      onTap: () async {
-                        if (channelNameFound) {
-                          openCompleteSubChannel(context);
-                        } else {
-                          showTopSnackBar(
-                            context,
-                            CustomSnackBar.info(
-                              message: "No Channel found yet",
-                              backgroundColor: ColorManager.primaryColor,
-                            ),
-                          );
-                        }
-                      },
-                      title: AppStrings.chooseMainChannel);
-                })
+            )
           ],
         ),
       )),

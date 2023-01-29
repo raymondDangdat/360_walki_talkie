@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_countdown_timer/index.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
@@ -11,8 +12,64 @@ import 'package:walkie_talkie_360/resources/strings_manager.dart';
 import 'package:walkie_talkie_360/resources/value_manager.dart';
 import 'package:walkie_talkie_360/widgets/custom_text.dart';
 
-class ChatView extends StatelessWidget {
+import '../../set_meeting_appointment/meeting_alert_widget.dart';
+
+class ChatView extends StatefulWidget {
   const ChatView({Key? key}) : super(key: key);
+
+  @override
+  State<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<ChatView> {
+  late CountdownTimerController controller;
+  int endTime = DateTime.now().millisecondsSinceEpoch + 1000 * 60;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = CountdownTimerController(endTime: endTime);
+    buildAlertDialog();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  buildAlertDialog() {
+    return Future.delayed(Duration(seconds: 1))
+        .then((value) => showGeneralDialog(
+              anchorPoint: Offset(0, 90),
+              context: context,
+              barrierColor: Colors.black.withOpacity(0.5),
+              pageBuilder: (_, __, ___) {
+                return MeetingAlert(
+                  controller: controller,
+                  endTime: endTime,
+                  onAccept: () {
+                    if (controller.isRunning) {
+                      controller.disposeTimer();
+                    }
+                    ;
+                    Navigator.of(context).pop();
+                  },
+                  onReject: () {
+                    if (controller.isRunning) {
+                      controller.disposeTimer();
+                    }
+                    ;
+                    Navigator.of(context).pop();
+                  },
+                  onEnd: () {
+                    controller.disposeTimer();
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ));
+  }
 
   @override
   Widget build(BuildContext context) {
