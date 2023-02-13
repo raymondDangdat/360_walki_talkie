@@ -1,7 +1,12 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_countdown_timer/index.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
@@ -10,8 +15,9 @@ import 'package:walkie_talkie_360/resources/font_manager.dart';
 import 'package:walkie_talkie_360/resources/image_manager.dart';
 import 'package:walkie_talkie_360/resources/strings_manager.dart';
 import 'package:walkie_talkie_360/resources/value_manager.dart';
+import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
 import 'package:walkie_talkie_360/widgets/custom_text.dart';
-
+import '../../../resources/constanst.dart';
 import '../../set_meeting_appointment/meeting_alert_widget.dart';
 
 class ChatView extends StatefulWidget {
@@ -22,6 +28,9 @@ class ChatView extends StatefulWidget {
 }
 
 class _ChatViewState extends State<ChatView> {
+  bool dialogShown = false;
+  bool stopRefreshing = false;
+  bool reloadDialog = false;
   late CountdownTimerController controller;
   int endTime = DateTime.now().millisecondsSinceEpoch + 1000 * 60;
 
@@ -29,46 +38,82 @@ class _ChatViewState extends State<ChatView> {
   void initState() {
     super.initState();
     controller = CountdownTimerController(endTime: endTime);
-    buildAlertDialog();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final authProvider =
+          Provider.of<AuthenticationProvider>(context, listen: false);
+
+      authProvider.getUserChannels(FirebaseAuth.instance.currentUser!.uid);
+    });
   }
 
   @override
   void dispose() {
     controller.dispose();
+    controller.disposeTimer();
     super.dispose();
   }
 
-  buildAlertDialog() {
-    return Future.delayed(Duration(seconds: 1))
-        .then((value) => showGeneralDialog(
-              anchorPoint: Offset(0, 90),
-              context: context,
-              barrierColor: Colors.black.withOpacity(0.5),
-              pageBuilder: (_, __, ___) {
-                return MeetingAlert(
-                  controller: controller,
-                  endTime: endTime,
-                  onAccept: () {
-                    if (controller.isRunning) {
-                      controller.disposeTimer();
-                    }
-                    ;
-                    Navigator.of(context).pop();
-                  },
-                  onReject: () {
-                    if (controller.isRunning) {
-                      controller.disposeTimer();
-                    }
-                    ;
-                    Navigator.of(context).pop();
-                  },
-                  onEnd: () {
-                    controller.disposeTimer();
-                    Navigator.of(context).pop();
-                  },
-                );
-              },
-            ));
+  buildAlertDialog({
+    required String channelName,
+    required String userId,
+    required ChannelProvider channelProvider,
+    required String channelId,
+  }) async {
+    setState(() {
+      stopRefreshing = true;
+    });
+    DocumentSnapshot querySnapshot =
+        await appointmentsCollection.doc(userId).get();
+
+    final channelData = UserChannelModel.fromSnapshot(querySnapshot);
+
+    channelProvider.setSelectedChannel(channelData);
+
+    return Future.delayed(Duration(seconds: 1)).then((value) {
+      return showGeneralDialog(
+        anchorPoint: Offset(0, 90),
+        context: context,
+        barrierColor: Colors.black.withOpacity(0.5),
+        pageBuilder: (_, __, ___) {
+          return MeetingAlert(
+            channelName: channelName,
+            controller: controller,
+            endTime: endTime,
+            onAccept: () {
+              setState(() {
+                reloadDialog = false;
+                dialogShown = true;
+                stopRefreshing = true;
+              });
+              if (controller.isRunning) {
+                controller.disposeTimer();
+              }
+              ;
+              channelProvider.getChannelMembers(context, channelId);
+              Navigator.of(context).pop();
+            },
+            onReject: () {
+              if (controller.isRunning) {
+                Future.delayed(Duration(seconds: 120), () {
+                  setState(() {
+                    reloadDialog = true;
+                    dialogShown = false;
+                    stopRefreshing = false;
+                  });
+                });
+                controller.disposeTimer();
+              }
+              ;
+              Navigator.of(context).pop();
+            },
+            onEnd: () {
+              controller.disposeTimer();
+            },
+          );
+        },
+      );
+    });
   }
 
   @override
@@ -78,9 +123,93 @@ class _ChatViewState extends State<ChatView> {
     return SafeArea(
       child: Column(
         children: [
-          // SizedBox(height: AppSize.s20.h,),
-          // const NavScreensHeader(),
+          dialogShown == true
+              ? SizedBox()
+              : StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('appointments')
+                      .doc('33UFJW981V')
+                      .collection('active')
+                      .snapshots(),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                    if (snapshot.hasData &&
+                        snapshot.hasData &&
+                        snapshot.data.docs != null &&
+                        snapshot.data.docs.isNotEmpty) {
 
+                      StreamBuilder(
+                          stream: userCollection
+                              .doc(authProvider.userInfo.userID)
+                              .collection('channels')
+                              .snapshots(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<dynamic> snapshot) {
+                            if (snapshot.hasData &&
+                                snapshot.hasData &&
+                                snapshot.data.docs != null &&
+                                snapshot.data.docs.isNotEmpty) {
+
+                              // WidgetsBinding.instance
+                              //     .addPostFrameCallback((timeStamp) {
+                              //   // print(
+                              //   //     "${Jiffy().year} - ${snapshot.data.docs[0]['year']}");
+                              //   // print(
+                              //   //     "${Jiffy().month} - ${snapshot.data.docs[0]['month']}");
+                              //   // print(
+                              //   //     "${Jiffy().hour} - ${snapshot.data.docs[0]['hour']}");
+                              //   // print(
+                              //   //     "${Jiffy().minute} - ${snapshot.data.docs[0]['minute']}");
+                              //
+                              //   refreshUI() async {
+                              //     if (Jiffy().year ==
+                              //             snapshot.data.docs[0]['year'] &&
+                              //         Jiffy().month ==
+                              //             snapshot.data.docs[0]['month'] &&
+                              //         Jiffy().hour ==
+                              //             snapshot.data.docs[0]['hour'] &&
+                              //         Jiffy().minute ==
+                              //             snapshot.data.docs[0]['minute']) {
+                              //       buildAlertDialog(
+                              //           userId: snapshot.data.docs[0]['userId'],
+                              //           channelId: snapshot.data.docs[0]
+                              //               ['channelId'],
+                              //           channelProvider: channelProvider,
+                              //           channelName:
+                              //               '${snapshot.data.docs[0]['channelName']}');
+                              //     }
+                              //   }
+                              //
+                              //   var counter = 1;
+                              //   stopRefreshing == true
+                              //       ? null
+                              //       : Timer.periodic(const Duration(seconds: 3),
+                              //           (timer) {
+                              //           //print(timer.tick);
+                              //           counter++;
+                              //           refreshUI();
+                              //           if (stopRefreshing == true) {
+                              //             timer.cancel();
+                              //           }
+                              //         });
+                              // });
+                            }
+
+                            reloadDialog == true
+                                ? buildAlertDialog(
+                                    userId: snapshot.data.docs[0]['userId'],
+                                    channelId: snapshot.data.docs[0]
+                                        ['channelId'],
+                                    channelProvider: channelProvider,
+                                    channelName:
+                                        '${snapshot.data.docs[0]['channelName']}')
+                                : null;
+                            return SizedBox();
+                          });
+                    }
+
+                    return SizedBox();
+                  }),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -193,9 +322,9 @@ class _ChatViewState extends State<ChatView> {
                       ),
                     ],
                   ),
-                  SizedBox(
-                    height: AppSize.s9.h,
-                  ),
+                  SizedBox(height: AppSize.s9.h),
+                  //Stream blocked users
+
                   SizedBox(
                     // height: AppSize.s200.h,
                     child: authProvider.userChannelsCreated.isNotEmpty
@@ -303,7 +432,7 @@ class _ChatViewState extends State<ChatView> {
                                                           channelProvider
                                                                   .subChannels[
                                                               index];
-                                                      print("In here");
+
                                                       return Padding(
                                                         padding:
                                                             EdgeInsets.only(
@@ -316,6 +445,7 @@ class _ChatViewState extends State<ChatView> {
                                                               channelProvider
                                                                   .setSelectedChannel(
                                                                       channel);
+
                                                               channelProvider
                                                                   .getChannelMembers(
                                                                       context,
@@ -329,19 +459,22 @@ class _ChatViewState extends State<ChatView> {
                                                               channelProvider
                                                                   .updateSelectedSubChannel(
                                                                       subChannel);
-                                                              channelProvider.searchUserInSubChannelName(
-                                                                  authProvider
-                                                                      .userInfo
-                                                                      .userName,
-                                                                  authProvider
-                                                                      .userInfo
-                                                                      .fullName);
+
+                                                              // channelProvider.searchUserInSubChannelName(
+                                                              //     authProvider
+                                                              //         .userInfo
+                                                              //         .userName,
+                                                              //     authProvider
+                                                              //         .userInfo
+                                                              //         .fullName);
+
                                                               channelProvider.getSubChannelMembers(
                                                                   context,
                                                                   channel
                                                                       .channelId,
                                                                   subChannel
-                                                                      .subChannelId);
+                                                                      .subChannelId,
+                                                                  authProvider);
                                                             }
                                                           },
                                                           child: index == 0
@@ -594,13 +727,13 @@ class _ChatViewState extends State<ChatView> {
                                                               channelProvider
                                                                   .setSelectedChannel(
                                                                       channel);
-                                                              channelProvider.searchUserInSubChannelName(
-                                                                  authProvider
-                                                                      .userInfo
-                                                                      .userName,
-                                                                  authProvider
-                                                                      .userInfo
-                                                                      .fullName);
+                                                              // channelProvider.searchUserInSubChannelName(
+                                                              //     authProvider
+                                                              //         .userInfo
+                                                              //         .userName,
+                                                              //     authProvider
+                                                              //         .userInfo
+                                                              //         .fullName);
                                                               channelProvider
                                                                   .updateSelectedSubChannel(
                                                                       subChannel);
@@ -609,7 +742,8 @@ class _ChatViewState extends State<ChatView> {
                                                                   channel
                                                                       .channelId,
                                                                   subChannel
-                                                                      .subChannelId);
+                                                                      .subChannelId,
+                                                                  authProvider);
                                                             }
                                                           },
                                                           child: index == 0
@@ -860,5 +994,3 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 }
-
-

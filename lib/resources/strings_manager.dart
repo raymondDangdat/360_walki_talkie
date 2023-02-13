@@ -144,9 +144,10 @@ class AppStrings {
   static const privacyPolicy = "privacy policy";
   static const termsAndConditions = "terms & condition";
   static const youHaveBeenAdded = "you have been added to ";
+  static const yourrequest = "your request to join ";
   static const youHaveCreated = "you have successfully created ";
   static const asASubChannel = "as a sub-channel under ";
-  static const channelSuccessfully = "channel successfully!";
+  static const channelSuccessfully = " has been submitted successfully! please wait for admin approval";
   static const returnToDashboard = "return to dashboard";
 }
 

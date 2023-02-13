@@ -15,8 +15,8 @@ import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 
 class NavScreensHeader extends StatelessWidget {
   final Function() onTapDrawer;
-  const NavScreensHeader({Key? key, required this.onTapDrawer}) : super(key: key);
-
+  const NavScreensHeader({Key? key, required this.onTapDrawer})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +45,8 @@ class NavScreensHeader extends StatelessWidget {
             ),
           ),
           IconButton(
-              onPressed: onTapDrawer, icon: SvgPicture.asset(AppImages.menuIcon)),
+              onPressed: onTapDrawer,
+              icon: SvgPicture.asset(AppImages.menuIcon)),
           SizedBox(
             width: AppSize.s21.w,
           ),
@@ -150,21 +151,23 @@ class NewNavScreen extends StatelessWidget {
 class ChatNavScreen extends StatelessWidget {
   final String menuTitle;
   final String subtitle;
+  final String initialString;
   final String? submenuIcon;
   final String? menuIconPath;
   final bool withLeading;
   final bool withTrailing;
   final Function() drawerAction;
-  const ChatNavScreen(
-      {Key? key,
-      required this.menuTitle,
-      required this.subtitle,
-      required this.drawerAction,
-      this.submenuIcon,
-      this.withTrailing = false,
-      this.withLeading = false,
-      this.menuIconPath})
-      : super(key: key);
+  const ChatNavScreen({
+    Key? key,
+    required this.initialString,
+    required this.menuTitle,
+    required this.subtitle,
+    required this.drawerAction,
+    this.submenuIcon,
+    this.withTrailing = false,
+    this.withLeading = false,
+    this.menuIconPath,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +199,7 @@ class ChatNavScreen extends StatelessWidget {
                       width: AppSize.s25.w,
                       child: Center(
                           child: CustomText(
-                        text: 'e',
+                        text: '$initialString',
                         fontSize: FontSize.s24,
                         textColor: ColorManager.blackTextColor,
                       )),

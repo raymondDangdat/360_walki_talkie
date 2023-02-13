@@ -2,14 +2,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
 import '../../models/chat_model.dart';
+import '../../provider/channel_provider.dart';
 import '../../resources/color_manager.dart';
 import '../../resources/constanst.dart';
 import '../../resources/font_manager.dart';
 import '../../resources/image_manager.dart';
+import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
 import '../../widgets/nav_screens_header.dart';
@@ -22,6 +25,7 @@ class ChannelChat extends StatefulWidget {
 }
 
 class _ChannelChatState extends State<ChannelChat> {
+  late ScrollController _scrollController;
   final channelNameController = TextEditingController();
   bool showBottomSheet = true;
   final chatController = TextEditingController();
@@ -35,20 +39,6 @@ class _ChannelChatState extends State<ChannelChat> {
   List<UserChannelModel> searchList = [];
   QuerySnapshot? channelSnapshot;
 
-  // void getAllChannels() async {
-  //
-  //
-  //   await getChannels().then((value) {
-  //     channelSnapshot = value;
-  //     allChannels = channelSnapshot!.docs
-  //         .map((doc) => SearchChannelModel.fromSnapshot(doc))
-  //         .toList();
-  //     print("Channels length: ${allChannels.length}");
-  //     isSearching = false;
-  //     setState(() {});
-  //   });
-  // }
-
   getChannels() async {
     return await FirebaseFirestore.instance.collection("channelNames").get();
   }
@@ -57,212 +47,315 @@ class _ChannelChatState extends State<ChannelChat> {
 
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final auth = Provider.of<AuthenticationProvider>(context, listen: false);
-
       allChannels.addAll(auth.userChannelsConnected);
       allChannels.addAll(auth.userChannelsCreated);
     });
     setState(() {});
-    super.initState();
+    _scrollController = ScrollController();
+
+  }
+
+
+
+  void scrollToBottom() {
+    final bottomOffset = _scrollController.position.maxScrollExtent;
+    _scrollController.animateTo(
+      bottomOffset,
+      duration: Duration(milliseconds: 1000),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
 
 
   @override
   Widget build(BuildContext context) {
+    final channelProvider = context.watch<ChannelProvider>();
+    final authProvider = context.watch<AuthenticationProvider>();
+    final selectedChannel = channelProvider.selectedChannel;
+
     final message = messages[3];
+
+    Timestamp myTimeStamp = Timestamp.fromDate(DateTime.now());
+
+    var dt = (selectedChannel.createdAt.toDate() ?? myTimeStamp);
+
+    DateTime tempDate =
+        new DateFormat("yyyy-MM-dd hh:mm:ss").parse(dt.toString());
+    String formattedDate = DateFormat('dd MMM, yyyy').format(tempDate);
+
+    String initialString = '';
+
+    if (selectedChannel.channelName.length > 0) {
+      initialString = selectedChannel.channelName[0];
+    }
+
     return Scaffold(
         key: _scaffoldKey,
         backgroundColor: ColorManager.bgColor,
-        body: SafeArea(
-            child: Column(
-          children: [
-            SizedBox(height: AppSize.s46.h),
-            Container(
-              height: AppSize.s54.h,
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ChatNavScreen(
-                    menuTitle: 'electrical department',
-                    subtitle: 'created 24 Sept. 2020',
-                    withLeading: true,
-                    submenuIcon: AppImages.channelIconPeople,
-                    drawerAction: () {
-                      _scaffoldKey.currentState?.openEndDrawer();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
+        body: StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('channels')
+              .doc(channelProvider.selectedChannel.channelId)
+              .collection("chats")
+              .orderBy('createdAt', descending: false)
+              .snapshots(),
+          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasData && snapshot.data.docs != null) {
+              return SafeArea(
                 child: Column(
-              children: [
-                SizedBox(
-                  height: AppSize.s22.h,
-                ),
-                Expanded(
-                    child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSize.s24.w),
-                  child: ListView.builder(
-                      itemCount: message.messages.length,
-                      itemBuilder: (context, index) {
-                        final chat = message.messages[index];
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: AppSize.s16.h),
-                          child: !chat.isSender
-                              ? Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: AppSize.s120),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          child: CustomTextWithLineHeight(
-                                            fontWeight: FontWeight.w400,
-                                            isCenterAligned: false,
-                                            textColor: ColorManager.primaryColor,
-                                            text: chat.senderName,
-                                          )),
-                                      Container(
-                                        constraints: BoxConstraints(
-                                            minWidth: AppSize.s186.w,
-                                            maxWidth:
-                                                MediaQuery.of(context).size.width *
-                                                    0.6),
-                                        padding: EdgeInsets.all(AppSize.s16.r),
-                                        decoration: BoxDecoration(
-                                            color: ColorManager.primaryColor,
-                                            borderRadius: BorderRadius.only(
-                                              topRight:
-                                                  Radius.circular(AppSize.s16.r),
-                                              bottomRight:
-                                                  Radius.circular(AppSize.s16.r),
-                                              bottomLeft:
-                                                  Radius.circular(AppSize.s16.r),
-                                            )),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                                child: CustomTextWithLineHeight(
-                                                  textColor: ColorManager.blackTextColor,
-                                                  isCenterAligned: false,
-                                              text: chat.message,
-                                            )),
-                                            Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: AppSize.s8.h),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.end,
-                                                children: [
-                                                  CustomText(
-                                                    text: chat.time,
-                                                    textColor:
-                                                        ColorManager.blackTextColor,
-                                                  )
-                                                ],
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : Padding(
-                            padding: const EdgeInsets.only(
-                                left: AppSize.s120),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Container(
-                                    child: CustomTextWithLineHeight(
-                                      fontWeight: FontWeight.w400,
-                                      isCenterAligned: false,
-                                      textColor: ColorManager.primaryColor,
-                                      text: "Me",
-                                    )),
-                                Container(
-                                                        constraints: BoxConstraints(
-                                                            minWidth: AppSize.s186.w,
-                                                            maxWidth:
-                                                                MediaQuery.of(context)
-                                                                        .size
-                                                                        .width *
-                                                                    0.6),
-                                                        padding: EdgeInsets.all(
-                                                            AppSize.s16.r),
-                                                        decoration: BoxDecoration(
-                                                            color: ColorManager
-                                                                .primaryColor,
-                                                            borderRadius:
-                                                                BorderRadius.only(
-                                                              topLeft: Radius.circular(
-                                                                  AppSize.s16.r),
-                                                              bottomRight:
-                                                                  Radius.circular(
-                                                                      AppSize.s16.r),
-                                                              bottomLeft:
-                                                                  Radius.circular(
-                                                                      AppSize.s16.r),
-                                                            )),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          child: CustomTextWithLineHeight(
-                                            isCenterAligned: false,
-                                            textColor: ColorManager.blackTextColor,
-                                            text: chat.message,
-                                          )),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            vertical: AppSize.s8.h),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment.end,
-                                          children: [
-                                            CustomText(
-                                              text: chat.time,
-                                              textColor:
-                                              ColorManager.blackTextColor,
-                                            )
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+                  children: [
+                    Container(
+                      height: AppSize.s54.h,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ChatNavScreen(
+                            initialString: initialString,
+                            menuTitle:
+                                '${channelProvider.selectedChannel.channelName}',
+                            subtitle: 'created on $formattedDate',
+                            withLeading: true,
+                            submenuIcon: AppImages.channelIconPeople,
+                            drawerAction: () {
+                              _scaffoldKey.currentState?.openEndDrawer();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                        child: Column(
+                      children: [
+                        SizedBox(
+                          height: AppSize.s5.h,
+                        ),
+                        Expanded(
+                            child: Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: AppSize.s24.w),
+                          child: ListView.builder(
+                              controller: _scrollController,
+                              itemCount: snapshot.data.docs.length,
+                              itemBuilder: (context, index) {
+                                final chat = snapshot.data.docs[index];
 
-                        );
-                      }),
-                )),
-              ],
-            ))
-          ],
-        )),
+                                Timestamp myTimeStamp =
+                                    Timestamp.fromDate(DateTime.now());
+
+                                var dt =
+                                    (chat['createdAt'].toDate() ?? myTimeStamp);
+
+                                DateTime tempDate =
+                                    new DateFormat("yyyy-MM-dd hh:mm:ss")
+                                        .parse(dt.toString());
+
+                                String formattedDate =
+                                    DateFormat.jm().format(tempDate);
+
+                                return Padding(
+                                    padding:
+                                        EdgeInsets.only(bottom: index ==  snapshot.data.docs.length - 1 ? AppSize.s90.h : AppSize.s15.h),
+                                    child: chat['userId'] ==
+                                            authProvider.userInfo.userID
+                                        ? Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: AppSize.s120),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Container(
+                                                    child:
+                                                        CustomTextWithLineHeight(
+                                                  fontWeight: FontWeight.w400,
+                                                  isCenterAligned: false,
+                                                  textColor:
+                                                      ColorManager.primaryColor,
+                                                  text: "Me",
+                                                )),
+                                                Container(
+                                                  constraints: BoxConstraints(
+                                                      minWidth: AppSize.s186.w,
+                                                      maxWidth:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.6),
+                                                  padding: EdgeInsets.all(
+                                                      AppSize.s16.r),
+                                                  decoration: BoxDecoration(
+                                                      color: ColorManager
+                                                          .primaryColor,
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                        topLeft:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                        bottomRight:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                        bottomLeft:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                      )),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                          child:
+                                                              CustomTextWithLineHeight(
+                                                        isCenterAligned: false,
+                                                        textColor: ColorManager
+                                                            .blackTextColor,
+                                                        text: chat['message'],
+                                                      )),
+                                                      Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                                vertical:
+                                                                    AppSize
+                                                                        .s8.h),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            CustomText(
+                                                              text:
+                                                                  formattedDate,
+                                                              textColor:
+                                                                  ColorManager
+                                                                      .blackTextColor,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: AppSize.s120),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Container(
+                                                    child:
+                                                        CustomTextWithLineHeight(
+                                                  fontWeight: FontWeight.w400,
+                                                  isCenterAligned: false,
+                                                  textColor:
+                                                      ColorManager.primaryColor,
+                                                  text: chat['userName'],
+                                                )),
+                                                Container(
+                                                  constraints: BoxConstraints(
+                                                      minWidth: AppSize.s186.w,
+                                                      maxWidth:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .width *
+                                                              0.6),
+                                                  padding: EdgeInsets.all(
+                                                      AppSize.s16.r),
+                                                  decoration: BoxDecoration(
+                                                      color: ColorManager
+                                                          .primaryColor,
+                                                      borderRadius:
+                                                          BorderRadius.only(
+                                                        topRight:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                        bottomRight:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                        bottomLeft:
+                                                            Radius.circular(
+                                                                AppSize.s16.r),
+                                                      )),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                          child:
+                                                              CustomTextWithLineHeight(
+                                                        textColor: ColorManager
+                                                            .blackTextColor,
+                                                        isCenterAligned: false,
+                                                        text: chat['message'],
+                                                      )),
+                                                      Padding(
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                                vertical:
+                                                                    AppSize
+                                                                        .s8.h),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            CustomText(
+                                                              text:
+                                                                  formattedDate,
+                                                              textColor:
+                                                                  ColorManager
+                                                                      .blackTextColor,
+                                                            )
+                                                          ],
+                                                        ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ));
+                              }),
+                        )),
+                      ],
+                    )),
+
+                  ],
+                ),
+              );
+            }
+            return SizedBox();
+          },
+        ),
         bottomSheet: showBottomSheet
             ? BottomSheet(
                 elevation: 0,
                 onClosing: () {
                   // Do something
                 },
+
                 builder: (BuildContext ctx) => Container(
-                    width: double.infinity,
-                    height: AppSize.s80.h,
-                    alignment: Alignment.center,
-                    padding: EdgeInsets.symmetric(
-                        horizontal: AppSize.s24.w, vertical: AppSize.s8.h),
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: AppSize.s18.h),
-                      child: Row(
+                      width: double.infinity,
+                      height: AppSize.s65.h,
+                      alignment: Alignment.center,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AppSize.s8.w, vertical: AppSize.s8.h),
+                      child: Column(
                         children: [
                           Expanded(
                             child: TextFormField(
@@ -271,13 +364,38 @@ class _ChannelChatState extends State<ChannelChat> {
                                   AutovalidateMode.onUserInteraction,
                               cursorColor: ColorManager.bgColor,
                               autofocus: true,
-                              maxLines: 1,
+                              maxLines: null,
+                              minLines: null,
+                              expands: true,
+                              scrollPadding: EdgeInsets.zero,
                               keyboardType: TextInputType.text,
                               style: TextStyle(
                                   color: ColorManager.bgColor,
                                   fontSize: FontSize.s16),
-                              onChanged: (value) async {},
+
+                              onChanged: (value) async {
+
+                              },
+
+                              onTap: (){
+                               scrollToBottom();
+                              },
+
                               decoration: InputDecoration(
+                                suffixIcon: IconButton(
+                                    onPressed: () {
+                                    if (chatController.text.isNotEmpty) {
+                                      channelProvider
+                                          .sendChannelChat(
+                                          authProvider.userInfo.userName,
+                                          chatController.text)
+                                          .then((value) {
+                                        scrollToBottom();
+                                        chatController.clear();
+                                      });
+                                    }
+                                    },
+                                    icon: Icon(Icons.send)),
                                 filled: true,
                                 counterText: "",
                                 fillColor: ColorManager.whiteColor,
@@ -297,7 +415,6 @@ class _ChannelChatState extends State<ChannelChat> {
                                   borderSide: BorderSide(
                                       color: ColorManager.bgColor, width: 1),
                                 ),
-
                                 focusedBorder: OutlineInputBorder(
                                   gapPadding: 0.0,
                                   borderRadius:
@@ -315,47 +432,9 @@ class _ChannelChatState extends State<ChannelChat> {
                               ),
                             ),
                           ),
-                          SizedBox(
-                            width: AppSize.s16.w,
-                          ),
-                          SvgPicture.asset(
-                              "assets/images/icon/send_chat_button.svg")
                         ],
                       ),
-                    )))
+                    ))
             : null);
-  }
-
-  void searchUserName(BuildContext context, String value) async {
-    try {
-      DocumentSnapshot doc =
-          await channelNamesCollection.doc(value.toLowerCase()).get();
-      setState(() {
-        // print("Docs: $doc");
-      });
-
-      if (doc.exists) {
-        print("Username exist");
-        setState(() {
-          channelNameFound = true;
-          isSearching = false;
-          channelId = doc['channelId'];
-          channelName = doc['channelName'];
-        });
-      } else {
-        setState(() {
-          channelNameFound = false;
-          isSearching = false;
-        });
-        // print("Username not taken");
-      }
-    } catch (e) {
-      // print("Error: ${e.toString()}");
-
-    }
-
-    setState(() {
-      isSearching = false;
-    });
   }
 }

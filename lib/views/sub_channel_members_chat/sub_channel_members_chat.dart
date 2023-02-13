@@ -13,6 +13,7 @@ import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
 import 'package:walkie_talkie_360/resources/strings_manager.dart';
+import 'package:walkie_talkie_360/views/set_meeting_appointment/set_meeting_appointment.dart';
 import 'package:walkie_talkie_360/widgets/customDrawer.dart';
 import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
@@ -20,10 +21,11 @@ import '../../resources/constanst.dart';
 import '../../resources/image_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/custom_text.dart';
+import '../../widgets/loading.dart';
 import '../../widgets/nav_screens_header.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
 import '../../widgets/new_user_prompt.dart';
-import '../../widgets/qrCode_bottomsheet.dart';
+
 
 const theSource = AudioSource.microphone;
 
@@ -40,9 +42,10 @@ class _SubChannelMembersChatsState extends State<SubChannelMembersChats>
   String recordFilePath = "";
 
   @override
-  void initState() { super.initState();
+  void initState() {
+    super.initState();
     WidgetsBinding.instance.addObserver(this);
-    buildNewUserDialog(context: context);
+    //buildNewUserDialog(context: context);
   }
 
   @override
@@ -215,6 +218,8 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
 
   @override
   Widget build(BuildContext context) {
+    // final channelProvider = context.watch<ChannelProvider>();
+    // final authProvider = context.watch<AuthenticationProvider>();
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
@@ -228,6 +233,140 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
               },
             ),
             SizedBox(height: AppSize.s52.h),
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection(channels)
+                  .doc(widget.channelProvider.selectedChannel.channelId)
+                  .collection(subChannel)
+                  .doc(widget.channelProvider.selectedSubChannel?.subChannelId)
+                  .collection(members)
+                  .where("isAdmin", isEqualTo: true)
+                  .snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+
+                if (snapshot.hasData &&
+                    snapshot.data.docs != null &&
+                    snapshot.data.docs.isNotEmpty) {
+                  if (snapshot.data.docs[0]['userId'] ==
+                      widget.authProvider.userInfo.userID) {
+                    return StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection(channels)
+                          .doc(widget.channelProvider.selectedChannel.channelId)
+                          .collection(subChannel)
+                          .doc(widget
+                              .channelProvider.selectedSubChannel?.subChannelId)
+                          .collection("waitingRoom")
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<dynamic> snapshot) {
+                        if (snapshot.hasData &&
+                            snapshot.data.docs != null &&
+                            snapshot.data.docs.isNotEmpty) {
+                          buildNewUserDialog(
+                              context: context,
+                              userName: snapshot.data.docs[0]['userFullName'],
+                              onAccept: () async {
+                                Navigator.of(context).pop();
+                                showDialog(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        const LoadingIndicator());
+
+                                widget.channelProvider
+                                    .approveMemberToSubChannel(
+                                        channelID: widget.channelProvider
+                                            .selectedChannel.channelId,
+                                        channelName: widget.channelProvider
+                                            .selectedChannel.channelName,
+                                        subChannelID:
+                                            '${widget.channelProvider.selectedSubChannel?.subChannelId}',
+                                        subChannelName:
+                                            '${widget.channelProvider.selectedSubChannel?.subChannelName}',
+                                        userId: snapshot.data.docs[0]['userId'],
+                                        userName: snapshot.data.docs[0]
+                                            ['username'],
+                                        userFullName: snapshot.data.docs[0]
+                                            ['userFullName'])
+                                    .then((value) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          backgroundColor:
+                                              ColorManager.greenColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text: 'request accepted',
+                                          )));
+
+                                  return FirebaseFirestore.instance
+                                      .collection('channels')
+                                      .doc(widget.channelProvider
+                                          .selectedChannel.channelId)
+                                      .collection('subChannel')
+                                      .doc(widget.channelProvider
+                                          .selectedSubChannel?.subChannelId)
+                                      .collection("waitingRoom")
+                                      .doc(snapshot.data.docs[0]['userId'])
+                                      .delete();
+                                }).onError((error, stackTrace) {
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.redColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text:
+                                                'Error Occurred ${error.toString()}',
+                                          )));
+                                });
+                              },
+                              onReject: () {
+                                FirebaseFirestore.instance
+                                    .collection('channels')
+                                    .doc(widget.channelProvider.selectedChannel
+                                        .channelId)
+                                    .collection('subChannel')
+                                    .doc(widget.channelProvider
+                                        .selectedSubChannel?.subChannelId)
+                                    .collection("waitingRoom")
+                                    .doc(snapshot.data.docs[0]['userId'])
+                                    .delete()
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.greenColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text: 'request rejected',
+                                          )));
+                                }).onError((error, stackTrace) {
+                                  Navigator.pop(context);
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.redColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text:
+                                                'Error Occurred ${error.toString()}',
+                                          )));
+                                });
+                              });
+                        }
+                        return CustomTextWithLineHeight(
+                            text: "", textColor: ColorManager.textColor);
+                      },
+                    );
+                  }
+                }
+                return CustomTextWithLineHeight(
+                    text: "", textColor: ColorManager.textColor);
+              },
+            ),
             StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection(channels)
@@ -286,12 +425,14 @@ class _SubChannelMembersChatBodyState extends State<SubChannelMembersChatBody> {
                         //     context,
                         //     MaterialPageRoute(
                         //         builder: (context) => const ChatDisplayView()));
-                        customQrCodeBottomSheet(
-                            context: context,
-                            channelId:
-                                '${widget.channelProvider.selectedSubChannel?.subChannelId}',
-                            channelTitle:
-                                '${widget.channelProvider.selectedSubChannel?.subChannelName}');
+
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            backgroundColor: ColorManager.primaryColor,
+                            content: CustomTextNoOverFlow(
+                              textColor: ColorManager.blackColor,
+                              text:
+                                  'new members cannot be automatically added to sub-channel',
+                            )));
                       },
                       child: Container(
                           decoration: BoxDecoration(

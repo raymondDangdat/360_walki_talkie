@@ -13,22 +13,22 @@ Drawer customDrawer(
     backgroundColor: ColorManager.primaryColor,
     child: ListView(
       children: [
-
-       ListTile(title:  CustomText(text: 'my walkie talkie',
-         fontSize: AppSize.s30,
-         textColor: ColorManager.blackTextColor.withOpacity(.2),
-       )),
-
-
+        ListTile(
+            title: CustomText(
+          text: 'my walkie talkie',
+          fontSize: AppSize.s30,
+          textColor: ColorManager.blackTextColor.withOpacity(.2),
+        )),
         drawerItem(
             onTap: () {
               Navigator.pop(context);
               openAllChannels(fromSecondMenu: fromSecondMenu, context: context);
             },
             title: AppStrings.allChannels),
-
-        Divider(color: ColorManager.blackColor.withOpacity(.2), height: 0,),
-
+        Divider(
+          color: ColorManager.blackColor.withOpacity(.2),
+          height: 0,
+        ),
         drawerItem(
             onTap: () {
               Navigator.pop(context);
@@ -83,8 +83,7 @@ Drawer customDrawer(
         drawerItem(
             onTap: () {
               Navigator.pop(context);
-              openCreateSubChannel(
-                  fromSecondMenu: fromSecondMenu, context: context);
+              openFAQ(context);
             },
             title: AppStrings.helpAndFeedbacks),
       ],
@@ -100,7 +99,10 @@ SizedBox drawerItem({
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Divider(color: ColorManager.blackColor.withOpacity(.2), height: 0,),
+        Divider(
+          color: ColorManager.blackColor.withOpacity(.2),
+          height: 0,
+        ),
         Flexible(
           fit: FlexFit.loose,
           child: ListTile(
@@ -119,7 +121,10 @@ SizedBox drawerItem({
             ),
           ),
         ),
-        Divider(color: ColorManager.blackColor.withOpacity(.2), height: 0,),
+        Divider(
+          color: ColorManager.blackColor.withOpacity(.2),
+          height: 0,
+        ),
       ],
     ),
   );

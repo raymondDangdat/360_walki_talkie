@@ -1,5 +1,3 @@
-
-
 final List<Object> dummyChannels = [
   {"id": 1, 'title': 'virus challenges'},
   {'id': 2, 'title': 'weekly clash'},
@@ -7,36 +5,31 @@ final List<Object> dummyChannels = [
   {'id': 4, 'title': 'discover conflict'},
 ];
 
-
-
 final List<Object> pattern = [
   {"id": 1, 'day': 'daily'},
-  {'id': 2, 'day': 'weekly'},
-  {'id': 3, 'day': 'monthly'},
-  {'id': 4, 'day': 'yearly'},
+  {'id': 7, 'day': 'weekly'},
 ];
 
-
 final List<Object> daysOfWeekList = [
-  {"id": 1, 'day': 'Monday'},
-  {'id': 2, 'day': 'Tuesday'},
-  {'id': 3, 'day': 'Wednesday'},
-  {'id': 4, 'day': 'Thursday'},
-  {'id': 5, 'day': 'Friday'},
-  {'id': 6, 'day': 'Saturday'},
-  {'id': 7, 'day': 'Sunday'},
+  {'id': 1, 'day': 'Sunday'},
+  {"id": 2, 'day': 'Monday'},
+  {'id': 3, 'day': 'Tuesday'},
+  {'id': 4, 'day': 'Wednesday'},
+  {'id': 5, 'day': 'Thursday'},
+  {'id': 6, 'day': 'Friday'},
+  {'id': 7, 'day': 'Saturday'},
 ];
 
 final List<Object> hoursList = [
-  {'id': 1, 'value': '01'},
-  {'id': 2, 'value': '02'},
-  {'id': 3, 'value': '03'},
-  {'id': 4, 'value': '04'},
-  {'id': 5, 'value': '05'},
-  {'id': 6, 'value': '06'},
-  {'id': 7, 'value': '07'},
-  {'id': 8, 'value': '08'},
-  {'id': 9, 'value': '09'},
+  {'id': 1, 'value': '1'},
+  {'id': 2, 'value': '2'},
+  {'id': 3, 'value': '3'},
+  {'id': 4, 'value': '4'},
+  {'id': 5, 'value': '5'},
+  {'id': 6, 'value': '6'},
+  {'id': 7, 'value': '7'},
+  {'id': 8, 'value': '8'},
+  {'id': 9, 'value': '9'},
   {'id': 10, 'value': '10'},
   {'id': 11, 'value': '11'},
   {'id': 12, 'value': '12'}
@@ -44,15 +37,15 @@ final List<Object> hoursList = [
 
 final List<Object> minutesList = [
   {'id': 0, 'value': '00'},
-  {'id': 1, 'value': '01'},
-  {'id': 2, 'value': '02'},
-  {'id': 3, 'value': '03'},
-  {'id': 4, 'value': '04'},
-  {'id': 5, 'value': '05'},
-  {'id': 6, 'value': '06'},
-  {'id': 7, 'value': '07'},
-  {'id': 8, 'value': '08'},
-  {'id': 9, 'value': '09'},
+  {'id': 1, 'value': '1'},
+  {'id': 2, 'value': '2'},
+  {'id': 3, 'value': '3'},
+  {'id': 4, 'value': '4'},
+  {'id': 5, 'value': '5'},
+  {'id': 6, 'value': '6'},
+  {'id': 7, 'value': '7'},
+  {'id': 8, 'value': '8'},
+  {'id': 9, 'value': '9'},
   {'id': 10, 'value': '10'},
   {'id': 11, 'value': '11'},
   {'id': 12, 'value': '12'},

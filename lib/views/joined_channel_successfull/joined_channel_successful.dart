@@ -55,7 +55,7 @@ class JoinedChannelSuccessful extends StatelessWidget {
             SizedBox(height: AppSize.s19.h,),
 
             CustomTextWithLineHeight(
-              text: AppStrings.youHaveBeenAdded,
+              text: AppStrings.yourrequest,
               textColor: ColorManager.primaryColor,),
 
             CustomTextWithLineHeight(

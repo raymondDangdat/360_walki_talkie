@@ -56,6 +56,7 @@ class AppSize {
   static const double splashMarginTop = 280;
   static const double privacyScreenMarginTop = 125.0;
   static const double s64 = 64.0;
+  static const double s65 = 65.0;
   static const double s12 = 12.0;
   static const double s128 = 128.0;
   static const double s120 = 120.0;

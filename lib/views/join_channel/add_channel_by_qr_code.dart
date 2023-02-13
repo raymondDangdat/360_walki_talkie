@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -253,10 +254,9 @@ class _AddChannelByQRCodeState extends State<AddChannelByQRCode> {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
+    controller.scannedDataStream.listen((scanData) async {
       setState(() {
         result = scanData;
-
         Navigator.pushReplacementNamed(context, Routes.qrRequestSent,
             arguments: result);
       });

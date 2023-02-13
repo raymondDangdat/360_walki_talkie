@@ -1,19 +1,15 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get_utils/get_utils.dart';
-import 'package:get/state_manager.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
 import 'package:walkie_talkie_360/provider/channel_provider.dart';
 import 'package:walkie_talkie_360/resources/font_manager.dart';
-import 'package:walkie_talkie_360/views/chat_display_view.dart';
 import 'package:walkie_talkie_360/widgets/new_user_prompt.dart';
 import '../../models/chat_records_model.dart';
 import '../../resources/color_manager.dart';
@@ -22,9 +18,9 @@ import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
+import '../../widgets/loading.dart';
 import '../../widgets/nav_screens_header.dart';
 import 'package:flutter_sound_platform_interface/flutter_sound_recorder_platform_interface.dart';
-
 import '../../widgets/qrCode_bottomsheet.dart';
 
 const theSource = AudioSource.microphone;
@@ -45,7 +41,6 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    buildNewUserDialog(context: context);
   }
 
   @override
@@ -97,7 +92,9 @@ class _ChannelMembersChatsState extends State<ChannelMembersChats>
         body: Stack(children: [
           const AudioStreaming(),
           ChannelMembersChatBody(
-              authProvider: authProvider, channelProvider: channelProvider)
+            channelProvider: channelProvider,
+            authProvider: authProvider,
+          )
         ]));
   }
 }
@@ -187,14 +184,16 @@ class _AudioStreamingState extends State<AudioStreaming> {
 }
 
 class ChannelMembersChatBody extends StatefulWidget {
+  final ChannelProvider channelProvider;
+  final AuthenticationProvider authProvider;
   const ChannelMembersChatBody({
     Key? key,
-    required this.authProvider,
     required this.channelProvider,
+    required this.authProvider,
   }) : super(key: key);
 
-  final AuthenticationProvider authProvider;
-  final ChannelProvider channelProvider;
+  // final AuthenticationProvider authProvider;
+  // final ChannelProvider channelProvider;
 
   @override
   State<ChannelMembersChatBody> createState() => _ChannelMembersChatBodyState();
@@ -202,21 +201,36 @@ class ChannelMembersChatBody extends StatefulWidget {
 
 class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
   String currentSpeaker = '';
+
   @override
   void initState() {
     super.initState();
-    FirebaseFirestore.instance
-        .collection('channels')
-        .doc(widget.channelProvider.selectedChannel.channelId)
-        .collection("members")
-        .doc(widget.authProvider.userInfo.userID)
-        .update({'isOnline': true});
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final channelProvider =
+          Provider.of<ChannelProvider>(context, listen: false);
+      final authProvider =
+          Provider.of<AuthenticationProvider>(context, listen: false);
+      FirebaseFirestore.instance
+          .collection('channels')
+          .doc(channelProvider.selectedChannel.channelId)
+          .collection("members")
+          .doc(authProvider.userInfo.userID)
+          .update({'isOnline': true});
+    });
   }
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
+    final channelProvider = context.watch<ChannelProvider>();
+    final authProvider = context.watch<AuthenticationProvider>();
+
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   provider.showPrompt == true ? buildNewUserDialog(context: context) : null;
+    // });
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: ColorManager.bgColor,
@@ -230,10 +244,211 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
               },
             ),
             SizedBox(height: AppSize.s52.h),
+
             StreamBuilder(
               stream: FirebaseFirestore.instance
                   .collection('channels')
-                  .doc(widget.channelProvider.selectedChannel.channelId)
+                  .doc(channelProvider.selectedChannel.channelId)
+                  .collection("members")
+                  .where('isAdmin', isEqualTo: true)
+                  .snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (snapshot.hasData &&
+                    snapshot.data.docs != null &&
+                    snapshot.data.docs.isNotEmpty) {
+                  if (snapshot.data.docs[0]['userId'] ==
+                      authProvider.userInfo.userID) {
+                    return StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('channels')
+                          .doc(channelProvider.selectedChannel.channelId)
+                          .collection("waitingRoom")
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<dynamic> snapshot) {
+                        if (snapshot.hasData &&
+                            snapshot.data.docs != null &&
+                            snapshot.data.docs.isNotEmpty) {
+                          buildNewUserDialog(
+                              context: context,
+                              userName: snapshot.data.docs[0]['userFullName'],
+                              onAccept: () async {
+                                print('accepted');
+
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(authProvider.userInfo.userID)
+                                    .collection('channels')
+                                    .doc(channelProvider
+                                        .selectedChannel.channelId)
+                                    .update({'isApproved': true});
+
+                                Navigator.pop(context);
+                                showDialog(
+                                    barrierDismissible: false,
+                                    context: context,
+                                    builder: (BuildContext context) =>
+                                        const LoadingIndicator());
+
+                                channelProvider
+                                    .approveMemberToChannel(
+                                        channelID: channelProvider
+                                            .selectedChannel.channelId,
+                                        channelName: channelProvider
+                                            .selectedChannel.channelName,
+                                        userId: snapshot.data.docs[0]['userId'],
+                                        userName: snapshot.data.docs[0]
+                                            ['username'],
+                                        userFullName: snapshot.data.docs[0]
+                                            ['userFullName'])
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.greenColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text: 'request accepted',
+                                          )));
+                                }).onError((error, stackTrace) {
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.redColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text:
+                                                'Error Occurred ${error.toString()}',
+                                          )));
+                                });
+                              },
+                              onReject: () {
+                                FirebaseFirestore.instance
+                                    .collection('channels')
+                                    .doc(channelProvider
+                                        .selectedChannel.channelId)
+                                    .collection("waitingRoom")
+                                    .doc(snapshot.data.docs[0]['userId'])
+                                    .delete()
+                                    .then((value) {
+                                  Navigator.pop(context);
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.greenColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text: 'request rejected',
+                                          )));
+                                }).onError((error, stackTrace) {
+                                  Navigator.pop(context);
+                                  return ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                          backgroundColor:
+                                              ColorManager.redColor,
+                                          content: CustomText(
+                                            textColor: ColorManager.whiteColor,
+                                            text:
+                                                'Error Occurred ${error.toString()}',
+                                          )));
+                                });
+                              });
+                        }
+                        return CustomTextWithLineHeight(
+                            text: "", textColor: ColorManager.textColor);
+                      },
+                    );
+                  }
+                }
+                return CustomTextWithLineHeight(
+                    text: "", textColor: ColorManager.textColor);
+              },
+            ),
+
+            //Check for new members that are pending
+            // StreamBuilder(
+            //   stream: FirebaseFirestore.instance
+            //       .collection('channels')
+            //       .doc(channelProvider.selectedChannel.channelId)
+            //       .collection("members")
+            //       .where("isMember", isEqualTo: false)
+            //       .snapshots(),
+            //   builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            //     if (snapshot.hasData &&
+            //         snapshot.data.docs != null &&
+            //         snapshot.data.docs.isNotEmpty) {
+            //       buildNewUserDialog(
+            //           context: context,
+            //           userName: snapshot.data.docs[0]['userFullName'],
+            //           onAccept: () {
+            //             showDialog(
+            //                 barrierDismissible: false,
+            //                 context: context,
+            //                 builder: (BuildContext context) => const LoadingIndicator());
+            //             Navigator.pop(context);
+            //             FirebaseFirestore.instance
+            //                 .collection('channels')
+            //                 .doc(widget
+            //                     .channelProvider.selectedChannel.channelId)
+            //                 .collection("members")
+            //                 .doc(snapshot.data.docs[0]['userId'])
+            //                 .update({'isMember': true}).then((value) {
+            //               Navigator.pop(context);
+            //               return ScaffoldMessenger.of(context)
+            //                   .showSnackBar(SnackBar(
+            //                       backgroundColor: ColorManager.greenColor,
+            //                       content: CustomText(
+            //                         textColor: ColorManager.whiteColor,
+            //                         text: 'User Added Successfully',
+            //                       )));
+            //             }).onError((error, stackTrace) {
+            //               return ScaffoldMessenger.of(context)
+            //                   .showSnackBar(SnackBar(
+            //                       backgroundColor: ColorManager.redColor,
+            //                       content: CustomText(
+            //                         textColor: ColorManager.whiteColor,
+            //                         text: 'Error Occurred ${error.toString()}',
+            //                       )));
+            //             });
+            //           },
+            //           onReject: () {
+            //             FirebaseFirestore.instance
+            //                 .collection('channels')
+            //                 .doc(widget
+            //                 .channelProvider.selectedChannel.channelId)
+            //                 .collection("members")
+            //                 .doc(snapshot.data.docs[0]['userId'])
+            //                 .delete().then((value) {
+            //               Navigator.pop(context);
+            //               return ScaffoldMessenger.of(context)
+            //                   .showSnackBar(SnackBar(
+            //                   backgroundColor: ColorManager.greenColor,
+            //                   content: CustomText(
+            //                     textColor: ColorManager.whiteColor,
+            //                     text: 'request rejected',
+            //                   )));
+            //             }).onError((error, stackTrace) {
+            //               return ScaffoldMessenger.of(context)
+            //                   .showSnackBar(SnackBar(
+            //                   backgroundColor: ColorManager.redColor,
+            //                   content: CustomText(
+            //                     textColor: ColorManager.whiteColor,
+            //                     text: 'Error Occurred ${error.toString()}',
+            //                   )));
+            //             });
+            //           });
+            //     }
+            //     return CustomTextWithLineHeight(
+            //         text: "", textColor: ColorManager.textColor);
+            //   },
+            // ),
+
+//stream the data for who is currently talking
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('channels')
+                  .doc(channelProvider.selectedChannel.channelId)
                   .collection("members")
                   .where("isPushed", isEqualTo: true)
                   .snapshots(),
@@ -243,7 +458,7 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                     snapshot.data.docs.isNotEmpty) {
                   return CustomTextWithLineHeight(
                       text: snapshot.data.docs[0]['userFullName'] ==
-                              widget.authProvider.userInfo.fullName
+                              authProvider.userInfo.fullName
                           ? AppStrings.youAreTalking
                           : "${snapshot.data.docs[0]['userFullName']} is talking...",
                       textColor: ColorManager.textColor);
@@ -258,15 +473,15 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                 height: AppSize.s250.w,
                 child: GestureDetector(
                     onTapDown: (_) async {
-                      return widget.channelProvider.recordSound();
+                      return channelProvider.recordSound();
                     },
                     onTapUp: (_) async {
-                      widget.channelProvider.stopRecord().then((value) async {
-                        await widget.channelProvider.sendSound(
-                            user: widget.authProvider.userInfo.userName);
+                      channelProvider.stopRecord().then((value) async {
+                        await channelProvider.sendSound(
+                            user: authProvider.userInfo.userName);
                       });
                     },
-                    child: widget.channelProvider.isRecording
+                    child: channelProvider.isRecording
                         ? Lottie.asset(AppImages.recordingAnimation)
                         : SvgPicture.asset(AppImages.tapToTalk))),
             SizedBox(height: AppSize.s40.h),
@@ -289,9 +504,9 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                         customQrCodeBottomSheet(
                             context: context,
                             channelId:
-                                '${widget.channelProvider.selectedChannel.channelId}',
+                                '${channelProvider.selectedChannel.channelId}',
                             channelTitle:
-                                '${widget.channelProvider.selectedChannel.channelName}');
+                                '${channelProvider.selectedChannel.channelName}');
                       },
                       child: Container(
                           decoration: BoxDecoration(
@@ -315,7 +530,7 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('channels')
-                    .doc(widget.channelProvider.selectedChannel.channelId)
+                    .doc(channelProvider.selectedChannel.channelId)
                     .collection("members")
                     .where("isOnline", isEqualTo: true)
                     .snapshots(),
@@ -340,7 +555,7 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                                     horizontal: AppSize.s18.w),
                                 child: CustomTextWithLineHeight(
                                   text:
-                                      "Channel: ${widget.channelProvider.selectedChannel.channelName} | ${snapshot.data?.docs.length} Member${snapshot.data?.docs.length == 1 ? "" : "s"} ",
+                                      "Channel: ${channelProvider.selectedChannel.channelName} | ${snapshot.data?.docs.length} Member${snapshot.data?.docs.length == 1 ? "" : "s"} ",
                                   textColor:
                                       const Color.fromRGBO(248, 201, 158, 1),
                                   fontSize: FontSize.s16,
@@ -354,20 +569,21 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
                           child: ListView.builder(
                             itemCount: snapshot.data?.docs.length,
                             itemBuilder: (context, index) {
-                              widget.channelProvider.isRecording
+                              print(authProvider.userInfo.userID);
+                              channelProvider.isRecording
                                   ? FirebaseFirestore.instance
                                       .collection('channels')
-                                      .doc(widget.channelProvider
+                                      .doc(channelProvider
                                           .selectedChannel.channelId)
                                       .collection("members")
-                                      .doc(widget.authProvider.userInfo.userID)
+                                      .doc(authProvider.userInfo.userID)
                                       .update({'isPushed': true})
                                   : FirebaseFirestore.instance
                                       .collection('channels')
-                                      .doc(widget.channelProvider
+                                      .doc(channelProvider
                                           .selectedChannel.channelId)
                                       .collection("members")
-                                      .doc(widget.authProvider.userInfo.userID)
+                                      .doc(authProvider.userInfo.userID)
                                       .update({'isPushed': false});
 
                               if (snapshot.data?.docs[index]["isOnline"] ==
@@ -436,6 +652,7 @@ class _ChannelMembersChatBodyState extends State<ChannelMembersChatBody> {
         .collection("members")
         .doc(widget.authProvider.userInfo.userID)
         .update({'isOnline': false});
+
     super.dispose();
   }
 }

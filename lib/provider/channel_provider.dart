@@ -1,16 +1,16 @@
 import 'dart:io';
 import 'package:audio_session/audio_session.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:file_cryptor/file_cryptor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_sound/flutter_sound.dart';
+import 'package:jiffy/jiffy.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:walkie_talkie_360/provider/authentication_provider.dart';
+import 'package:walkie_talkie_360/resources/color_manager.dart';
 import 'package:walkie_talkie_360/resources/navigation_utils.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/channel_members_model.dart';
 import 'package:walkie_talkie_360/views/create_brand_new_channel/models/user_channel_model.dart';
@@ -20,6 +20,7 @@ import '../resources/constanst.dart';
 import '../service/abstracts/audio_player_service.dart';
 import '../service/abstracts/storage_service.dart';
 import '../views/channel_users_list_and_chats/channel_members_chats.dart';
+import '../widgets/custom_text.dart';
 import '../widgets/loading.dart';
 
 import 'package:random_string/random_string.dart';
@@ -123,6 +124,9 @@ class ChannelProvider extends ChangeNotifier {
   bool _isCameraPaused = true;
   bool get isCameraPaused => _isCameraPaused;
 
+  bool _showPrompt = false;
+  bool get showPrompt => _showPrompt;
+
   Map<int, int> get currentPosition => _currentPosition;
 
   void updateCurrentPosition(int id, int duration) {
@@ -131,6 +135,16 @@ class ChannelProvider extends ChangeNotifier {
 
   void pausePlayQRCamera() async {
     _isCameraPaused = !_isCameraPaused;
+    notifyListeners();
+  }
+
+  void promptIsTrue() async {
+    _showPrompt = true;
+    notifyListeners();
+  }
+
+  void promptIsFalse() async {
+    _showPrompt = false;
     notifyListeners();
   }
 
@@ -258,10 +272,11 @@ class ChannelProvider extends ChangeNotifier {
         'allowUserTalkToAdmin': allowUserTalkToAdmin,
         'moderatorCanInterrupt': moderatorCanInterrupt,
         "creatorId": FirebaseAuth.instance.currentUser!.uid,
+        "createdAt": DateTime.now(),
       });
 
       await saveChannelInfoToUser(channelId, channelName, true);
-      await saveMemberInChannel(channelId, channelName, true, auth);
+      await saveMemberInChannel(context, channelId, channelName, true, auth);
       await saveChannelName(channelName, channelId);
       channelCreated = true;
     } on SocketException catch (_) {
@@ -321,6 +336,7 @@ class ChannelProvider extends ChangeNotifier {
         'allowUserTalkToAdmin': allowUserTalkToAdmin,
         'moderatorCanInterrupt': moderatorCanInterrupt,
         "creatorId": FirebaseAuth.instance.currentUser!.uid,
+        "createdAt": DateTime.now(),
       });
 
       // DocumentReference docRef = await
@@ -344,7 +360,7 @@ class ChannelProvider extends ChangeNotifier {
       // print("RefName ${docRef.id}");
 
       await saveSubChannelInfoToUser(subChannelId, channelName, true);
-      await saveMemberInSubChannel(subChannelId, channelName, true, auth);
+      await saveMemberInSubChannel(subChannelId, true, auth);
       await saveSubChannelName(channelName, subChannelId);
       channelCreated = true;
     } on SocketException catch (_) {
@@ -363,41 +379,41 @@ class ChannelProvider extends ChangeNotifier {
     }
     return channelCreated;
   }
-
-  Future<bool> createChannelFromChannelName(
-    BuildContext context,
-    String channelName,
-    String channelId,
-    AuthenticationProvider auth,
-  ) async {
-    bool channelCreated = false;
-    _isLoading = true;
-    showDialog(
-        barrierDismissible: false,
-        context: context,
-        builder: (BuildContext context) => const LoadingIndicator());
-    notifyListeners();
-    try {
-      await saveChannelInfoToUser(channelId, channelName, false);
-      await saveMemberInChannel(channelId, channelName, false, auth);
-      channelCreated = true;
-    } on SocketException catch (_) {
-      _isLoading = false;
-      _resMessage = "Internet connection is not available";
-      notifyListeners();
-      Navigator.pop(context);
-    } catch (e) {
-      _isLoading = false;
-      _resMessage = e.toString();
-      notifyListeners();
-      Navigator.pop(context);
-      if (kDebugMode) {
-        print("Error adding channel: ${e.toString()}");
-      }
-    }
-
-    return channelCreated;
-  }
+  //
+  // Future<bool> createChannelFromChannelName(
+  //   BuildContext context,
+  //   String channelName,
+  //   String channelId,
+  //   AuthenticationProvider auth,
+  // ) async {
+  //   bool channelCreated = false;
+  //   _isLoading = true;
+  //   showDialog(
+  //       barrierDismissible: false,
+  //       context: context,
+  //       builder: (BuildContext context) => const LoadingIndicator());
+  //   notifyListeners();
+  //   try {
+  //
+  //     await saveMemberInChannel(channelId, channelName, false, auth);
+  //     channelCreated = true;
+  //   } on SocketException catch (_) {
+  //     _isLoading = false;
+  //     _resMessage = "Internet connection is not available";
+  //     notifyListeners();
+  //     Navigator.pop(context);
+  //   } catch (e) {
+  //     _isLoading = false;
+  //     _resMessage = e.toString();
+  //     notifyListeners();
+  //     Navigator.pop(context);
+  //     if (kDebugMode) {
+  //       print("Error adding channel: ${e.toString()}");
+  //     }
+  //   }
+  //
+  //   return channelCreated;
+  // }
 
   Future<dynamic> getPreviousChatDetails(String? chatRoomId) async {
     return FirebaseFirestore.instance
@@ -409,16 +425,22 @@ class ChannelProvider extends ChangeNotifier {
   }
 
   Future saveChannelInfoToUser(
-      String channelID, String channelName, bool isCreator) async {
+    String channelID,
+    String channelName,
+    bool isCreator,
+  ) async {
     return await userCollection
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .collection("channels")
         .doc(channelID)
         .set({
-      'userId': _firebaseAuth.currentUser!.uid,
+      'userId': FirebaseAuth.instance.currentUser!.uid,
       'channelId': channelID,
       'channelName': channelName,
+      "isApproved": isCreator == true ? true : false,
       "isCreated": isCreator,
+      "isBlocked": false,
+      "createdAt": DateTime.now(),
     });
   }
 
@@ -435,6 +457,9 @@ class ChannelProvider extends ChangeNotifier {
       'subChannelId': subChannelID,
       'channelName': channelName,
       "isCreated": isCreator,
+      "isApproved": isCreator == true ? true : false,
+      "isBlocked": false,
+      "createdAt": DateTime.now(),
     });
   }
 
@@ -452,38 +477,175 @@ class ChannelProvider extends ChangeNotifier {
         .set({'channelName': childChannelName, 'channelId': channelId});
   }
 
-  Future saveMemberInChannel(String channelID, String channelName,
-      bool isCreator, AuthenticationProvider auth) async {
+  Future saveMemberInChannel(BuildContext context, String channelID,
+      String channelName, bool isCreator, AuthenticationProvider auth) async {
+    notifyListeners();
     return await channelsCollection
         .doc(channelID)
-        .collection("members")
+        .collection(isCreator == true ? "members" : "waitingRoom")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
       'isPushed': false,
       'isOnline': false,
+      'isApproved': false,
       'userId': _firebaseAuth.currentUser!.uid,
       'username': auth.userInfo.userName,
       'userFullName': auth.userInfo.fullName,
       "isAdmin": isCreator,
+      "isBlocked": false,
+      'createdAt': DateTime.now()
     });
   }
 
-  Future saveMemberInSubChannel(String channelID, String channelName,
-      bool isCreator, AuthenticationProvider auth) async {
+  Future saveMemberInSubChannel(
+      String subChannelID, bool isCreator, AuthenticationProvider auth) async {
+    print(isCreator);
     return await channelsCollection
         .doc(selectedChannel.channelId)
         .collection('subChannel')
-        .doc(channelID)
-        .collection('members')
+        .doc(subChannelID)
+        .collection(isCreator == true ? "members" : "waitingRoom")
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({
       'isPushed': false,
       'isOnline': false,
+      'isApproved': false,
       'userId': _firebaseAuth.currentUser!.uid,
       'username': auth.userInfo.userName,
       'userFullName': auth.userInfo.fullName,
       "isAdmin": isCreator,
+      "isBlocked": false,
+      'createdAt': DateTime.now()
     });
+  }
+
+  Future approveMemberToChannel({
+    required String channelID,
+    required String channelName,
+    required String userId,
+    required String userName,
+    required String userFullName,
+  }) async {
+    try {
+      await channelsCollection
+          .doc(channelID)
+          .collection("members")
+          .doc(userId)
+          .set({
+        'isPushed': false,
+        'isOnline': false,
+        'userId': userId,
+        'username': userName,
+        'userFullName': userFullName,
+        "isAdmin": false,
+        "isBlocked": false,
+        'createdAt': DateTime.now()
+      }).then((value) async {
+        await userCollection
+            .doc(userId)
+            .collection("channels")
+            .doc(channelID)
+            .update({"isApproved": true});
+      });
+    } catch (e) {
+    } finally {
+      FirebaseFirestore.instance
+          .collection('channels')
+          .doc(channelID)
+          .collection("waitingRoom")
+          .doc(userId)
+          .delete();
+    }
+  }
+
+  Future approveMemberToSubChannel({
+    required String channelID,
+    required String subChannelID,
+    required String channelName,
+    required String subChannelName,
+    required String userId,
+    required String userName,
+    required String userFullName,
+  }) async {
+    try {
+      await channelsCollection
+          .doc(channelID)
+          .collection("subChannel")
+          .doc(subChannelID)
+          .collection('members')
+          .doc(userId)
+          .set({
+        'isPushed': false,
+        'isOnline': false,
+        'userId': userId,
+        'username': userName,
+        'userFullName': userFullName,
+        "isAdmin": false,
+        "isBlocked": false,
+        'createdAt': DateTime.now()
+      }).then((value) async {
+        await userCollection
+            .doc(userId)
+            .collection("channels")
+            .doc(channelID)
+            .update({"isApproved": true});
+      });
+    } catch (e) {
+    } finally {
+      FirebaseFirestore.instance
+          .collection('channels')
+          .doc(channelID)
+          .collection("waitingRoom")
+          .doc(userId)
+          .delete();
+    }
+  }
+
+  Future pushAppointment({
+    required String channelId,
+    required int day,
+    required int hour,
+    required int minute,
+    required int when,
+    required int frequency,
+    required String channelName,
+    required String userId,
+    required String userName,
+  }) async {
+    try {
+      await appointmentsCollection
+          .doc(channelId)
+          .collection('active')
+          .doc(userId)
+          .set({
+        'day': day,
+        'hour': hour + 12,
+        'minute': minute,
+        'when': when,
+        "frequency": frequency,
+        'channelName': channelName,
+        'channelId': channelId,
+        "organiserName": userName,
+        "userId": userId,
+        "isDone": false,
+        "isPending": true,
+        'year': Jiffy().year,
+        'month': Jiffy().month,
+        'createdAt': DateTime.now()
+      }).then((val) async {
+        await appointmentsCollection.doc(userId).set({
+          "userId": userId,
+          'channelId': channelId,
+          'channelName': channelName,
+          "isCreated": true,
+          "isBlocked": false,
+          "isApproved": true,
+          'createdAt': DateTime.now()
+        });
+      });
+    } catch (e) {
+      print(e.toString());
+    }
   }
 
   Future<void> getUserChannels(String userId) async {
@@ -544,42 +706,43 @@ class ChannelProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> searchUserInSubChannelName(String username, fullName) async {
-    try {
-      DocumentSnapshot doc = await channelsCollection
-          .doc(_selectedChannel?.channelId)
-          .collection(subChannel)
-          .doc(_selectedSubChannel?.subChannelId)
-          .collection(members)
-          .doc(FirebaseAuth.instance.currentUser?.uid)
-          .get();
+  // Future<void> searchUserInSubChannelName(String username, fullName) async {
+  //   try {
+  //     DocumentSnapshot doc = await channelsCollection
+  //         .doc(_selectedChannel?.channelId)
+  //         .collection(subChannel)
+  //         .doc(_selectedSubChannel?.subChannelId)
+  //         .collection(members)
+  //         .doc(FirebaseAuth.instance.currentUser?.uid)
+  //         .get();
+  //
+  //     if (doc.exists) {
+  //       print("Good to go");
+  //     } else {
+  //       await channelsCollection
+  //           .doc(selectedChannel.channelId)
+  //           .collection('subChannel')
+  //           .doc(_selectedSubChannel?.subChannelId)
+  //           .collection('members')
+  //           .doc(FirebaseAuth.instance.currentUser!.uid)
+  //           .set({
+  //         'isPushed': false,
+  //         'isOnline': false,
+  //         'userId': _firebaseAuth.currentUser!.uid,
+  //         'username': username,
+  //         'userFullName': fullName,
+  //         "isAdmin": false,
+  //         'createdAt': DateTime.now()
+  //       });
+  //     }
+  //   } catch (e) {
+  //     // print("Error: ${e.toString()}");
+  //
+  //   }
+  // }
 
-      if (doc.exists) {
-        print("Good to go");
-      } else {
-        await channelsCollection
-            .doc(selectedChannel.channelId)
-            .collection('subChannel')
-            .doc(_selectedSubChannel?.subChannelId)
-            .collection('members')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .set({
-          'isPushed': false,
-          'isOnline': false,
-          'userId': _firebaseAuth.currentUser!.uid,
-          'username': username,
-          'userFullName': fullName,
-          "isAdmin": false,
-        });
-      }
-    } catch (e) {
-      // print("Error: ${e.toString()}");
-
-    }
-  }
-
-  Future<void> getSubChannelMembers(
-      BuildContext context, String mainChannelId, String subChannelId) async {
+  Future<void> getSubChannelMembers(BuildContext context, String mainChannelId,
+      String subChannelId, AuthenticationProvider auth) async {
     _isLoading = true;
     showDialog(
         barrierDismissible: false,
@@ -600,10 +763,26 @@ class ChannelProvider extends ChangeNotifier {
       if (kDebugMode) {
         print("Length of channel Members: ${_channelMembers.length}");
       }
-
       Navigator.pop(context);
       _isLoading = false;
-      openSubChannelMembersChats(context);
+
+      if (_channelMembers
+          .map((e) => e.userId)
+          .contains(_firebaseAuth.currentUser?.uid)) {
+        openSubChannelMembersChats(context);
+      } else {
+        saveMemberInSubChannel(subChannelId, false, auth).then((value) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: ColorManager.redColor,
+              content: CustomTextNoOverFlow(
+                textColor: ColorManager.whiteColor,
+                text:
+                    'your request to join this sub-channel is yet to be approved by the admin',
+              )));
+        });
+
+        print('not qualified');
+      }
 
       notifyListeners();
     } catch (e) {
@@ -1070,6 +1249,22 @@ class ChannelProvider extends ChangeNotifier {
         .collection('chatRoom')
         .where('users', arrayContains: currentUser)
         .snapshots();
+  }
+
+  Future<void> sendChannelChat(String userName, chatMessage) async {
+    FirebaseFirestore.instance
+        .collection('channels')
+        .doc(selectedChannel.channelId)
+        .collection('chats')
+        .doc()
+        .set({
+      'userId': FirebaseAuth.instance.currentUser!.uid,
+      'userName': userName,
+      'message': chatMessage,
+      "createdAt": DateTime.now(),
+    }).catchError((e) {
+      debugPrint(e.toString());
+    });
   }
 
   void clear() {

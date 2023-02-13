@@ -254,17 +254,19 @@ class _AddChannelByNameState extends State<AddChannelByName> {
                         context: context,
                         onTap: () async {
                           if (channelNameFound) {
-                            final bool isAdded = await channelProvider
-                                .createChannelFromChannelName(context,
-                                    channelName, channelId, authProvider);
 
-                            if (isAdded) {
+                          await  channelProvider.saveChannelInfoToUser(
+                                channelId, channelName, false);
+
+                            await channelProvider
+                                .saveMemberInChannel(context, channelId,
+                                    channelName, false, authProvider)
+                                .then((value) {
                               authProvider.updateChannelNameJoined(channelName);
                               authProvider.getUserChannels(
                                   FirebaseAuth.instance.currentUser!.uid);
-
                               openChannelJoinedScreen(context);
-                            }
+                            });
                           } else {
                             showTopSnackBar(
                               context,

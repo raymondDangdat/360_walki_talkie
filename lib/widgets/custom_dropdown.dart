@@ -10,24 +10,22 @@ import 'custom_text.dart';
 
 Widget customDropdown(
     {required List dropdownList,
-      required String value,
+    required String value,
+    String? selectedValue,
 
-       String? selectedValue,
-
-      required Function(Object? value)? onTap}) {
-
+required Function(dynamic value)? onTap,
+    required Function(Object? value)? onChange}) {
   return DropdownButtonHideUnderline(
     child: DropdownButton2(
       buttonPadding: EdgeInsets.only(left: AppPadding.p8),
       buttonHeight: AppSize.s33.h,
-
-            buttonDecoration: BoxDecoration(
+      buttonDecoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSize.s20.r),
           border: Border.all(
             color: ColorManager.primaryColor,
           )),
       alignment: Alignment.centerLeft,
-
+      buttonWidth: 120.w,
       dropdownPadding: EdgeInsets.zero,
       dropdownMaxHeight: AppSize.s200.h,
       dropdownDecoration: BoxDecoration(color: ColorManager.bgColor),
@@ -43,17 +41,20 @@ Widget customDropdown(
         text: 'Select Item',
         textColor: ColorManager.primaryColor,
       ),
-      items: dropdownList
-          .map((item) => DropdownMenuItem<Object>(
-        value: item[value],
-        child: CustomText(
-          text: item[value],
-          textColor: ColorManager.primaryColor,
-        ),
-      ))
-          .toList(),
+      items: dropdownList.map((item) {
+        return DropdownMenuItem<Object>(
+          onTap: () {
+            onTap!(item);
+          },
+          value: item[value],
+          child: CustomText(
+            text: item[value],
+            textColor: ColorManager.primaryColor,
+          ),
+        );
+      }).toList(),
       value: selectedValue,
-      onChanged: onTap,
+      onChanged: onChange,
     ),
   );
 }

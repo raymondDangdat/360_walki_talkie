@@ -12,16 +12,15 @@ import '../resources/navigation_utils.dart';
 import '../views/create_brand_new_channel/models/user_channel_model.dart';
 import '../widgets/loading.dart';
 
-
 class AuthenticationProvider extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   UploadTask? task;
 
-
   List<UserChannelModel> _userChannels = [];
   List<UserChannelModel> _userChannelCreated = [];
   List<UserChannelModel> _userChannelsConnected = [];
+  List<UserChannelModel> _userChannelsConnectedRaw = [];
 
   bool _notificationOn = false;
   bool get notificationOn => _notificationOn;
@@ -32,24 +31,20 @@ class AuthenticationProvider extends ChangeNotifier {
   String _channelNameJoined = "";
   String get channelNameJoined => _channelNameJoined;
 
-
-  void changeNotificationStatus(bool value){
+  void changeNotificationStatus(bool value) {
     _notificationOn = value;
     notifyListeners();
   }
 
-  void updatJustRegistered(bool value){
+  void updatJustRegistered(bool value) {
     _justRegistered = value;
     notifyListeners();
   }
 
-  void updateChannelNameJoined(String value){
+  void updateChannelNameJoined(String value) {
     _channelNameJoined = value;
     notifyListeners();
   }
-
-
-
 
   ///Setter
   bool _isLoading = false;
@@ -66,9 +61,10 @@ class AuthenticationProvider extends ChangeNotifier {
   List<UserChannelModel> get userChannels => _userChannels;
   List<UserChannelModel> get userChannelsCreated => _userChannelCreated;
   List<UserChannelModel> get userChannelsConnected => _userChannelsConnected;
+  List<UserChannelModel> get userChannelsConnectedRaw => _userChannelsConnected;
 
-
-  Future<User?> createUserWithEmailAndPassword({required BuildContext context,
+  Future<User?> createUserWithEmailAndPassword({
+    required BuildContext context,
     required String email,
     required String password,
     required String fullName,
@@ -83,108 +79,103 @@ class AuthenticationProvider extends ChangeNotifier {
         builder: (BuildContext context) => const LoadingIndicator());
     notifyListeners();
 
-
     User? user;
 
-      try {
-        final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-        user =  userCredential.user;
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      user = userCredential.user;
 
-        print("User value: $user");
+      print("User value: $user");
 
-        if(user != null){
-          final destination = 'profiles/${FirebaseAuth.instance.currentUser!.uid}';
-          task = await uploadFile(destination, file);
+      if (user != null) {
+        final destination =
+            'profiles/${FirebaseAuth.instance.currentUser!.uid}';
+        task = await uploadFile(destination, file);
 
-          if(task == null){
-
-          }else{
-            print("Download URL: $_downloadUrl");
-            await saveUserName(userName);
-            await updateUserData(fullName, userName, email, phoneNumber, _downloadUrl);
-          }
-
-
-        }else{
-          _isLoading = false;
-          _resMessage = "Something went wrong";
-          notifyListeners();
-          Navigator.pop(context);
-        }
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
-          _isLoading = false;
-          _resMessage = "Weak Password";
-          notifyListeners();
-          Navigator.pop(context);
-        } else if (e.code == 'email-already-in-use') {
-          _isLoading = false;
-          _resMessage = "Email Already Exist";
-          notifyListeners();
-          Navigator.pop(context);
+        if (task == null) {
         } else {
+          print("Download URL: $_downloadUrl");
+          await saveUserName(userName);
+          await updateUserData(
+              fullName, userName, email, phoneNumber, _downloadUrl);
         }
-      } on SocketException catch (_) {
+      } else {
         _isLoading = false;
-        _resMessage = "Internet connection is not available";
+        _resMessage = "Something went wrong";
         notifyListeners();
         Navigator.pop(context);
-      } catch (e) {
-        _isLoading = false;
-        _resMessage = e.toString();
-        notifyListeners();
-        Navigator.pop(context);
-        print("Error on sign up: ${e.toString()}");
       }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        _isLoading = false;
+        _resMessage = "Weak Password";
+        notifyListeners();
+        Navigator.pop(context);
+      } else if (e.code == 'email-already-in-use') {
+        _isLoading = false;
+        _resMessage = "Email Already Exist";
+        notifyListeners();
+        Navigator.pop(context);
+      } else {}
+    } on SocketException catch (_) {
+      _isLoading = false;
+      _resMessage = "Internet connection is not available";
+      notifyListeners();
+      Navigator.pop(context);
+    } catch (e) {
+      _isLoading = false;
+      _resMessage = e.toString();
+      notifyListeners();
+      Navigator.pop(context);
+      print("Error on sign up: ${e.toString()}");
+    }
 
-      return user;
+    return user;
   }
 
-
-  Future<UploadTask?> uploadFile(String destination, File file) async{
+  Future<UploadTask?> uploadFile(String destination, File file) async {
     UploadTask? uploadTask;
     try {
       final ref = FirebaseStorage.instance.ref(destination);
 
-      uploadTask  = ref.putFile(file);
+      uploadTask = ref.putFile(file);
 
-      final snapshot =  await uploadTask.whenComplete(() => null);
+      final snapshot = await uploadTask.whenComplete(() => null);
 
       _downloadUrl = await snapshot.ref.getDownloadURL();
       print("The the download URL is profile");
       notifyListeners();
     } on FirebaseException catch (e) {
       print(e.toString());
-
     }
 
     return uploadTask;
   }
 
-
-  Future updateUserData(String fullName, String userName, String email, phoneNumber, String userProfileUrl) async{
+  Future updateUserData(String fullName, String userName, String email,
+      phoneNumber, String userProfileUrl) async {
     return await userCollection.doc(_firebaseAuth.currentUser!.uid).set({
-      'fullName' : fullName,
-      'userName' : userName,
-      'email' : email,
+      'fullName': fullName,
+      'userName': userName,
+      'email': email,
       'phoneNumber': phoneNumber,
-      'userId' : _firebaseAuth.currentUser!.uid,
+      'userId': _firebaseAuth.currentUser!.uid,
       'userProfileUrl': userProfileUrl,
     });
   }
 
-  Future saveUserName(String userName) async{
+  Future saveUserName(String userName) async {
     return await registeredUserNamesCollection.doc(userName).set({
-      'userName' : userName,
-      'userId' : _firebaseAuth.currentUser!.uid,
+      'userName': userName,
+      'userId': _firebaseAuth.currentUser!.uid,
     });
   }
 
-
-  Future<User?> signInUserWithEmailAndPassword({required BuildContext context,
+  Future<User?> signInUserWithEmailAndPassword({
+    required BuildContext context,
     required String email,
     required String password,
   }) async {
@@ -202,16 +193,15 @@ class AuthenticationProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
-      user =  userCredential.user;
+      user = userCredential.user;
 
       // print("User value: $user");
 
-      if(user != null){
-      //  User logged in successfully
+      if (user != null) {
+        //  User logged in successfully
         await getUserDetail(user.uid);
         await getUserChannels(user.uid);
-
-      }else{
+      } else {
         _isLoading = false;
         _resMessage = "Something went wrong";
         notifyListeners();
@@ -228,8 +218,7 @@ class AuthenticationProvider extends ChangeNotifier {
         _resMessage = "Wrong credentials";
         notifyListeners();
         Navigator.pop(context);
-      } else {
-      }
+      } else {}
     } on SocketException catch (_) {
       _isLoading = false;
       _resMessage = "Internet connection is not available";
@@ -246,39 +235,52 @@ class AuthenticationProvider extends ChangeNotifier {
     return user;
   }
 
-
-  Future<void> getUserDetail(String userId) async{
+  Future<void> getUserDetail(String userId) async {
     DocumentSnapshot doc = await userCollection.doc(userId).get();
-    if(doc.exists){
+    if (doc.exists) {
       _userInfo = LocalUserModel.fromDocument(doc);
       print("User info fetched");
       notifyListeners();
-    }else{
+    } else {
       _resMessage = "no user info";
       notifyListeners();
     }
   }
 
-
-
-  Future<void> getUserChannels(String userId) async{
-    QuerySnapshot querySnapshot = await userCollection
-        .doc(userId)
-        .collection("channels")
-        .get();
-
-
-    _userChannels =  querySnapshot.docs.map((doc) => UserChannelModel.fromSnapshot(doc)).toList();
-    _userChannelCreated = _userChannels.where((channel) => channel.isCreated == true).toList();
-    _userChannelsConnected = _userChannels.where((channel) => channel.isCreated == false).toList();
-
-    print("Length of channels: ${_userChannels.length}");
-    print("Length of created channels: ${_userChannelCreated.length}");
-    print("Length of connected channels: ${_userChannelsConnected.length}");
+  Future<void> getUserChannels(String userId) async {
+    QuerySnapshot querySnapshot =
+        await userCollection.doc(userId).collection("channels").get();
     notifyListeners();
+
+    _userChannels = querySnapshot.docs
+        .map((doc) => UserChannelModel.fromSnapshot(doc))
+        .toList();
+    notifyListeners();
+
+    _userChannelCreated = _userChannels
+        .where((channel) => channel.isCreated == true)
+        .toList();
+    notifyListeners();
+
+
+    _userChannelsConnected = _userChannels
+        .where((channel) =>
+    channel.isCreated == false &&
+        channel.isBlocked == false &&
+        channel.isApproved == true)
+        .toList();
+    notifyListeners();
+
+    _userChannelsConnectedRaw = _userChannels
+        .where((channel) =>
+    channel.isCreated == false && channel.isApproved == true)
+        .toList();
+    notifyListeners();
+
   }
 
-  Future<void> sentPasswordResetEmail({required BuildContext context,
+  Future<void> sentPasswordResetEmail({
+    required BuildContext context,
     required String email,
   }) async {
     _isLoading = true;
@@ -292,39 +294,35 @@ class AuthenticationProvider extends ChangeNotifier {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
       _resMessage = "";
-        notifyListeners();
-        Navigator.pop(context);
+      notifyListeners();
+      Navigator.pop(context);
       showTopSnackBar(
         context,
         CustomSnackBar.info(
           message: "Check your inbox for reset link",
-          backgroundColor:
-          ColorManager.greenColor,
+          backgroundColor: ColorManager.greenColor,
         ),
       );
 
       openLoginScreen(context);
     } on FirebaseAuthException catch (e) {
       print("Error code: ${e.code}");
-      if(e.code.contains("user-not-found")){
+      if (e.code.contains("user-not-found")) {
         _resMessage = "No user found";
         print("Error: ${e.toString()}");
         notifyListeners();
         Navigator.pop(context);
-      }else if(e.code == "invalid-email"){
+      } else if (e.code == "invalid-email") {
         _resMessage = "Invalid Email";
         print("Error: ${e.toString()}");
         notifyListeners();
         Navigator.pop(context);
-      }else{
+      } else {
         _resMessage = "Something went wrong";
         print("Error: ${e.toString()}");
         notifyListeners();
         Navigator.pop(context);
       }
-
-
-
     } on SocketException catch (_) {
       _isLoading = false;
       _resMessage = "Internet connection is not available";

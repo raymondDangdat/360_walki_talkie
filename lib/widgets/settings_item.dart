@@ -38,10 +38,12 @@ class SettingsItem extends StatelessWidget {
                 children: [
                   SvgPicture.asset(iconName),
                   SizedBox(width: AppSize.s12.w,),
-                  CustomText(
-                    text: title,
-                    fontSize: FontSize.s20,
-                    textColor: ColorManager.blckTxtColor,
+                  Expanded(
+                    child: CustomText(
+                      text: title,
+                      fontSize: FontSize.s20,
+                      textColor: ColorManager.blckTxtColor,
+                    ),
                   ),
                 ],
               ),

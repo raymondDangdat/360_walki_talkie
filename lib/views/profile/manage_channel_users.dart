@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -20,6 +22,7 @@ import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
+import '../../widgets/loading.dart';
 import '../../widgets/nav_screens_header.dart';
 
 class ManageChannelUsers extends StatefulWidget {
@@ -33,7 +36,8 @@ class _ManageChannelUsersState extends State<ManageChannelUsers> {
   final channelNameController = TextEditingController();
 
   bool channelNameFound = false;
-  bool isSearching = false;
+  bool ready = false;
+  int tappedIndex = 99;
   String channelName = "";
   String channelId = "";
 
@@ -89,36 +93,42 @@ class _ManageChannelUsersState extends State<ManageChannelUsers> {
           ),
           SizedBox(height: AppSize.s20),
           Expanded(
-              child: ListView.builder(
+              child:  authProvider.userChannelsCreated.isEmpty ? Center(child: CustomTextNoOverFlow(
+                textColor: ColorManager.primaryColor,
+                text: 'you have not created a channel yet,')) :  ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: authProvider.userChannelsConnected.length,
+                  itemCount: authProvider.userChannelsCreated.length,
                   itemBuilder: (context, index) {
-                    final channel = authProvider.userChannelsConnected[index];
+                    final channel = authProvider.userChannelsCreated[index];
+                    String initialString = '';
+
+                    if (channel.channelName.length > 0) {
+                      initialString = channel.channelName[0];
+                    }
+
                     return Column(
                       children: [
                         InkWell(
                           onTap: () async {
-                            if (channelProvider
-                                    .channelConnectedIndexToShowSubChannels ==
-                                index) {
-                              channelProvider
-                                  .showConnectedSubChannelsAtIndex(-1);
-                            } else {
-                              final subChannels =
-                                  await channelProvider.getChannelSubChannels(
-                                      context, channel.channelId, channel);
-                              if (subChannels.isEmpty) {
-                                //if the list of sub channels is empty, take user to push and talk screen
-                                channelProvider.setSelectedChannel(channel);
-                                channelProvider.getChannelMembers(
-                                    context, channel.channelId);
-                              } else {
-                                //show sub-channels
-                                channelProvider
-                                    .showConnectedSubChannelsAtIndex(index);
-                              }
-                            }
+                            showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    const LoadingIndicator());
+                            FirebaseFirestore.instance
+                                .collection('channels')
+                                .doc(channel.channelId)
+                                .collection("members")
+                                .get()
+                                .then((QuerySnapshot querySnapshot) {
+                              Navigator.pop(context);
+                              setState(() {
+                                ready = true;
+                                tappedIndex = index;
+                                channelSnapshot = querySnapshot;
+                              });
+                            });
                           },
                           child: Padding(
                             padding: EdgeInsets.only(bottom: AppSize.s3.h),
@@ -136,7 +146,7 @@ class _ManageChannelUsersState extends State<ManageChannelUsers> {
                                         width: AppSize.s35.w,
                                         child: Center(
                                             child: CustomText(
-                                          text: 'e',
+                                          text: initialString,
                                           fontSize: FontSize.s28,
                                           textColor:
                                               ColorManager.blackTextColor,
@@ -171,109 +181,207 @@ class _ManageChannelUsersState extends State<ManageChannelUsers> {
                             ),
                           ),
                         ),
-                        channelProvider.channelConnectedIndexToShowSubChannels ==
-                                    index &&
-                                !channelProvider.isLoadingSubChannels
+                        ready == true && tappedIndex == index
                             ? Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: channelProvider.subChannels.isEmpty
-                                        ? 0
-                                        : 3.h),
-                                child: ListView.builder(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    itemCount: channelProvider
-                                            .subChannels.isEmpty
-                                        ? channelProvider.subChannels.length
-                                        : channelProvider.subChannels.length,
-                                    itemBuilder: (context, index) {
-                                      final subChannel =
-                                          channelProvider.subChannels[index];
-                                      return Padding(
-                                        padding: EdgeInsets.fromLTRB(
-                                            AppSize.s18,
-                                            index == 0
-                                                ? AppSize.s10.h
-                                                : AppSize.s5,
-                                            AppSize.s10,
-                                            AppSize.s5),
-                                        child: SizedBox(
-                                          height: AppSize.s40.h,
-                                          width: double.infinity,
-                                          child: Row(
-                                            children: [
-                                              ClipOval(
-                                                child: Container(
-                                                  color: ColorManager
-                                                      .primaryColor
-                                                      .withOpacity(.4),
-                                                  height: AppSize.s40.h,
-                                                  width: AppSize.s35.w,
-                                                  child: Center(
-                                                      child: CustomText(
-                                                    text: 'c',
-                                                    fontSize: FontSize.s28,
-                                                    textColor: ColorManager
-                                                        .primaryColor,
-                                                  )),
-                                                ),
-                                              ),
-                                              SizedBox(width: AppSize.s10.w),
-                                              SizedBox(
-                                                width: AppSize.s150.w,
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    CustomText(
-                                                      text: 'Clement Bako',
-                                                      fontSize: FontSize.s16,
-                                                      textColor: ColorManager
-                                                          .primaryColor,
+                                padding:
+                                    EdgeInsets.only(bottom: 15.h, left: 30.w),
+                                child: ListView(
+                                  shrinkWrap: true,
+                                  children: channelSnapshot!.docs
+                                      .map((DocumentSnapshot document) {
+                                    Map<String, dynamic> data = document.data()!
+                                        as Map<String, dynamic>;
+
+                                    Timestamp myTimeStamp = Timestamp.fromDate(
+                                        DateTime.now()); //To Tim
+
+                                    DateTime dt =
+                                        (data['createdAt'] ?? myTimeStamp)
+                                            .toDate();
+
+                                    DateTime tempDate =
+                                        new DateFormat("yyyy-MM-dd hh:mm:ss")
+                                            .parse(dt.toString());
+                                    String formattedDate =
+                                        DateFormat('dd MMM, yyyy')
+                                            .format(tempDate);
+
+                                    String initialString = '';
+
+                                    if (data['username'].length > 0) {
+                                      initialString = data['username'][0];
+                                    }
+
+                                    return data.isEmpty
+                                        ? Padding(
+                                            padding: EdgeInsets.fromLTRB(
+                                                AppSize.s18,
+                                                index == 0
+                                                    ? AppSize.s10.h
+                                                    : AppSize.s5,
+                                                AppSize.s10,
+                                                AppSize.s5),
+                                            child: CustomTextNoOverFlow(
+                                              textColor:
+                                                  ColorManager.primaryColor,
+                                              text: 'Channel has no member yet',
+                                            ),
+                                          )
+                                        : Padding(
+                                            padding: EdgeInsets.fromLTRB(
+                                                AppSize.s18,
+                                                index == 0
+                                                    ? AppSize.s10.h
+                                                    : AppSize.s5,
+                                                AppSize.s10,
+                                                AppSize.s5),
+                                            child: SizedBox(
+                                              height: AppSize.s48.h,
+                                              width: double.infinity,
+                                              child: Row(
+                                                children: [
+                                                  ClipOval(
+                                                    child: Container(
+                                                      color: ColorManager
+                                                          .primaryColor
+                                                          .withOpacity(.4),
+                                                      height: AppSize.s40.h,
+                                                      width: AppSize.s35.w,
+                                                      child: Center(
+                                                          child: CustomText(
+                                                        text: initialString,
+                                                        fontSize: FontSize.s28,
+                                                        textColor: ColorManager
+                                                            .primaryColor,
+                                                      )),
                                                     ),
-                                                    CustomText(
-                                                      text:
-                                                          'created on 23 Sept, 2020',
-                                                      fontSize: FontSize.s12,
-                                                      textColor: ColorManager
-                                                          .primaryColor,
-                                                    )
-                                                  ],
-                                                ),
-                                              ),
-                                              Spacer(),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: AppSize.s8,
-                                                    vertical: AppSize.s5),
-                                                width: AppSize.s70.w,
-                                                height: AppSize.s50,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      ColorManager.primaryColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          AppSize.s20.r),
-                                                ),
-                                                child: InkWell(
-                                                    onTap: () {},
-                                                    child: Center(
-                                                      child: CustomText(
-                                                          text: 'remove',
+                                                  ),
+                                                  SizedBox(
+                                                      width: AppSize.s10.w),
+                                                  SizedBox(
+                                                    width: AppSize.s150.w,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        CustomText(
+                                                          text:
+                                                              data['username'],
                                                           fontSize:
-                                                              FontSize.s14,
-                                                          textColor: ColorManager
-                                                              .blackTextColor),
-                                                    )),
+                                                              FontSize.s16,
+                                                          textColor:
+                                                              ColorManager
+                                                                  .primaryColor,
+                                                        ),
+                                                        Expanded(
+                                                          child:
+                                                              CustomTextNoOverFlow(
+                                                            text:
+                                                                'created on $formattedDate',
+                                                            fontSize:
+                                                                FontSize.s12,
+                                                            textColor:
+                                                                ColorManager
+                                                                    .primaryColor,
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Spacer(),
+                                                  Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal:
+                                                                AppSize.s8,
+                                                            vertical:
+                                                                AppSize.s5),
+                                                    width: AppSize.s70.w,
+                                                    height: AppSize.s50,
+                                                    decoration: BoxDecoration(
+                                                      color: ColorManager
+                                                          .primaryColor,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              AppSize.s20.r),
+                                                    ),
+                                                    child: InkWell(
+                                                        onTap: () {
+                                                          showDialog(
+                                                              barrierDismissible:
+                                                                  false,
+                                                              context: context,
+                                                              builder: (BuildContext
+                                                                      context) =>
+                                                                  const LoadingIndicator());
+
+                                                          FirebaseFirestore
+                                                              .instance
+                                                              .collection(
+                                                                  'channels')
+                                                              .doc(channel
+                                                                  .channelId)
+                                                              .collection(
+                                                                  "members")
+                                                              .doc(data[
+                                                                  'userId'])
+                                                              .delete()
+                                                              .then((value) {
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'users')
+                                                                .doc(data[
+                                                                    'userId'])
+                                                                .collection(
+                                                                    'channels')
+                                                                .doc(channel
+                                                                    .channelId)
+                                                                .delete();
+
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    'channels')
+                                                                .doc(channel
+                                                                    .channelId)
+                                                                .collection(
+                                                                    "members")
+                                                                .get()
+                                                                .then((QuerySnapshot
+                                                                    querySnapshot) {
+                                                              Navigator.pop(
+                                                                  context);
+                                                              setState(() {
+                                                                ready = true;
+                                                                tappedIndex =
+                                                                    index;
+                                                                channelSnapshot =
+                                                                    querySnapshot;
+                                                              });
+                                                            });
+                                                          });
+                                                        },
+                                                        child: Center(
+                                                          child: CustomText(
+                                                              text: 'remove',
+                                                              fontSize:
+                                                                  FontSize.s14,
+                                                              textColor:
+                                                                  ColorManager
+                                                                      .blackTextColor),
+                                                        )),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }),
+                                            ),
+                                          );
+                                  }).toList(),
+                                ),
                               )
                             : Container()
                       ],
@@ -282,38 +390,5 @@ class _ManageChannelUsersState extends State<ManageChannelUsers> {
         ],
       )),
     );
-  }
-
-  void searchUserName(BuildContext context, String value) async {
-    try {
-      DocumentSnapshot doc =
-          await channelNamesCollection.doc(value.toLowerCase()).get();
-      setState(() {
-        // print("Docs: $doc");
-      });
-
-      if (doc.exists) {
-        print("Username exist");
-        setState(() {
-          channelNameFound = true;
-          isSearching = false;
-          channelId = doc['channelId'];
-          channelName = doc['channelName'];
-        });
-      } else {
-        setState(() {
-          channelNameFound = false;
-          isSearching = false;
-        });
-        // print("Username not taken");
-      }
-    } catch (e) {
-      // print("Error: ${e.toString()}");
-
-    }
-
-    setState(() {
-      isSearching = false;
-    });
   }
 }

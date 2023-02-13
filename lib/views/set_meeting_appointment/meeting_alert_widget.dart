@@ -14,9 +14,11 @@ class MeetingAlert extends StatelessWidget {
   final Function() onReject;
   final Function() onEnd;
   final int endTime;
+  final String channelName;
   final CountdownTimerController controller;
   MeetingAlert(
       {Key? key,
+      required this.channelName,
       required this.onAccept,
       required this.onReject,
       required this.onEnd,
@@ -71,7 +73,7 @@ class MeetingAlert extends StatelessWidget {
                                           textColor: ColorManager.whiteColor,
                                           fontSize: AppSize.s20,
                                           text:
-                                              'electical department meeting starts in.')
+                                              '$channelName meeting starts in.')
                                     ])),
                           ),
                           Padding(

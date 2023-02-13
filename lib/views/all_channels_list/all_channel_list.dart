@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -75,6 +76,8 @@ class _AllChannelListState extends State<AllChannelList> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
+    final channelProvider = context.watch<ChannelProvider>();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
@@ -104,8 +107,25 @@ class _AllChannelListState extends State<AllChannelList> {
           Expanded(
               child: ListView.builder(
             shrinkWrap: true,
-            itemCount: 10,
+            itemCount: authProvider.userChannelsConnected.length,
             itemBuilder: (BuildContext context, int index) {
+              final channelData = authProvider.userChannelsConnected[index];
+
+              Timestamp myTimeStamp = Timestamp.fromDate(DateTime.now());
+
+              var dt = (channelData.createdAt.toDate() ?? myTimeStamp);
+
+              DateTime tempDate =
+                  new DateFormat("yyyy-MM-dd hh:mm:ss").parse(dt.toString());
+              String formattedDate =
+                  DateFormat('dd MMM, yyyy').format(tempDate);
+
+              String initialString = '';
+
+              if (channelData.channelName.length > 0) {
+                initialString = channelData.channelName[0];
+              }
+
               return Padding(
                 padding: EdgeInsets.fromLTRB(
                     AppSize.s10,
@@ -124,7 +144,7 @@ class _AllChannelListState extends State<AllChannelList> {
                           width: AppSize.s35.w,
                           child: Center(
                               child: CustomText(
-                            text: 'e',
+                            text: '$initialString',
                             fontSize: FontSize.s28,
                             textColor: ColorManager.blackTextColor,
                           )),
@@ -138,12 +158,12 @@ class _AllChannelListState extends State<AllChannelList> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CustomText(
-                              text: 'Electrical department',
+                              text: channelData.channelName,
                               fontSize: FontSize.s16,
                               textColor: ColorManager.primaryColor,
                             ),
                             CustomText(
-                              text: 'created on 23 Sept, 2020',
+                              text: 'created on $formattedDate',
                               fontSize: FontSize.s12,
                               textColor: ColorManager.primaryColor,
                             )
@@ -160,8 +180,19 @@ class _AllChannelListState extends State<AllChannelList> {
                             border:
                                 Border.all(color: ColorManager.primaryColor)),
                         child: InkWell(
-                          onTap: () {
-                            openChannelChat(context: context, fromSecondMenu: false);
+                          onTap: () async {
+                            await channelProvider
+                                .setSelectedChannel(UserChannelModel(
+                              userId: channelData.userId,
+                              channelId: channelData.channelId,
+                              channelName: channelData.channelName,
+                              createdAt: channelData.createdAt,
+                              isCreated: channelData.isCreated,
+                              isBlocked: channelData.isBlocked,
+                              isApproved: channelData.isApproved,
+                            ));
+                            openChannelChat(
+                                context: context, fromSecondMenu: false);
                           },
                           child: Row(
                             children: [
@@ -187,7 +218,8 @@ class _AllChannelListState extends State<AllChannelList> {
                                 Border.all(color: ColorManager.primaryColor)),
                         child: InkWell(
                           onTap: () {
-                            openViewChannels(context: context, fromSecondMenu: false);
+                            openViewChannels(
+                                context: context, fromSecondMenu: false);
                           },
                           child: Row(
                             children: [

@@ -43,8 +43,6 @@ class _QrCodeRequestSubmittedState extends State<QrCodeRequestSubmitted> {
 
   bool channelNameFound = false;
   bool isSearching = false;
-  String channelName = "";
-  String channelId = "";
 
   List<SearchChannelModel> allChannels = [];
   List<SearchChannelModel> searchList = [];
@@ -73,18 +71,71 @@ class _QrCodeRequestSubmittedState extends State<QrCodeRequestSubmitted> {
 
   @override
   void initState() {
-    getAllChannels();
     super.initState();
+    getAllChannels();
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      final channelProvider =
+          Provider.of<ChannelProvider>(context, listen: false);
+      final authProvider =
+          Provider.of<AuthenticationProvider>(context, listen: false);
+      channelProvider.saveChannelInfoToUser(
+          jsonDecode(widget.result.code!)['channelId'],
+          jsonDecode(widget.result.code!)['title'],
+          false);
+
+      channelProvider.saveMemberInChannel(
+          context,
+          jsonDecode(widget.result.code!)['channelId'],
+          jsonDecode(widget.result.code!)['title'],
+          false,
+          authProvider);
+    });
   }
 
-
-
-
   ScreenshotController screenshotController = ScreenshotController();
+  // sendRequest() {
+  //   print('sendong');
+  //   Consumer(
+  //     builder: (BuildContext context, value, Widget? child) {
+  //       final authProvider = context.watch<AuthenticationProvider>();
+  //       final channelProvider = context.watch<ChannelProvider>();
+  //
+  //       channelProvider.saveChannelInfoToUser(
+  //           jsonDecode(result.code!)['channelId'],
+  //           jsonDecode(result.code!)['title'],
+  //           false);
+  //
+  //       channelProvider.saveMemberInChannel(
+  //           context,
+  //           jsonDecode(result.code!)['channelId'],
+  //           jsonDecode(result.code!)['title'],
+  //           false,
+  //           authProvider);
+  //
+  //       return SizedBox();
+  //     },
+  //   );
+  // }
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthenticationProvider>();
+    final channelProvider = context.watch<ChannelProvider>();
     final decoded = jsonDecode(widget.result.code!);
+
+    Future.delayed(Duration(seconds: 1), () {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        channelProvider.saveChannelInfoToUser(
+            decoded['channelId'], decoded['title'], false);
+
+        channelProvider.saveMemberInChannel(
+            context,
+            jsonDecode(widget.result.code!)['channelId'],
+            jsonDecode(widget.result.code!)['title'],
+            false,
+            authProvider);
+      });
+    });
 
     return Scaffold(
       key: _scaffoldKey,
@@ -168,38 +219,5 @@ class _QrCodeRequestSubmittedState extends State<QrCodeRequestSubmitted> {
         ),
       )),
     );
-  }
-
-  void searchUserName(BuildContext context, String value) async {
-    try {
-      DocumentSnapshot doc =
-          await channelNamesCollection.doc(value.toLowerCase()).get();
-      setState(() {
-        // print("Docs: $doc");
-      });
-
-      if (doc.exists) {
-        print("Username exist");
-        setState(() {
-          channelNameFound = true;
-          isSearching = false;
-          channelId = doc['channelId'];
-          channelName = doc['channelName'];
-        });
-      } else {
-        setState(() {
-          channelNameFound = false;
-          isSearching = false;
-        });
-        // print("Username not taken");
-      }
-    } catch (e) {
-      // print("Error: ${e.toString()}");
-
-    }
-
-    setState(() {
-      isSearching = false;
-    });
   }
 }

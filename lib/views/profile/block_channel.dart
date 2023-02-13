@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -20,6 +21,7 @@ import '../../resources/strings_manager.dart';
 import '../../resources/value_manager.dart';
 import '../../widgets/customDrawer.dart';
 import '../../widgets/custom_text.dart';
+import '../../widgets/loading.dart';
 import '../../widgets/nav_screens_header.dart';
 
 class BlockChannels extends StatefulWidget {
@@ -75,6 +77,8 @@ class _BlockChannelsState extends State<BlockChannels> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthenticationProvider>();
+    final channelProvider = context.watch<ChannelProvider>();
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: ColorManager.bgColor,
@@ -87,119 +91,159 @@ class _BlockChannelsState extends State<BlockChannels> {
             positionSize: AppSize.s200,
           ),
           SizedBox(height: AppSize.s20),
-          Expanded(
-              child: SizedBox(
-                  child: ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: 7,
-            itemBuilder: (BuildContext context, int index) {
-              return Padding(
-                padding: EdgeInsets.fromLTRB(
-                    AppSize.s10,
-                    index == 0 ? AppSize.s10.h : AppSize.s5,
-                    AppSize.s10,
-                    AppSize.s5),
-                child: SizedBox(
-                  height: AppSize.s40.h,
-                  width: double.infinity,
-                  child: Row(
-                    children: [
-                      ClipOval(
-                        child: Container(
-                          color: ColorManager.primaryColor,
+          StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(authProvider.userInfo.userID)
+                  .collection("channels")
+                  .snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (snapshot.hasData &&
+                    snapshot.data.docs != null &&
+                    snapshot.data.docs.isNotEmpty) {
+                  final channels = snapshot.data.docs
+                      .map((doc) => UserChannelModel.fromSnapshot(doc))
+                      .toList();
+
+                  return Expanded(
+                      child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: channels.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final channelData = channels[index];
+
+                      Timestamp myTimeStamp =
+                          Timestamp.fromDate(DateTime.now());
+
+                      var dt = (channelData.createdAt.toDate() ?? myTimeStamp);
+
+                      DateTime tempDate = new DateFormat("yyyy-MM-dd hh:mm:ss")
+                          .parse(dt.toString());
+                      String formattedDate =
+                          DateFormat('dd MMM, yyyy').format(tempDate);
+
+                      String initialString = '';
+
+                      if (channelData.channelName.length > 0) {
+                        initialString = channelData.channelName[0];
+                      }
+
+                      return Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            AppSize.s10,
+                            index == 0 ? AppSize.s25.h : AppSize.s5,
+                            AppSize.s10,
+                            AppSize.s5),
+                        child: SizedBox(
                           height: AppSize.s40.h,
-                          width: AppSize.s35.w,
-                          child: Center(
-                              child: CustomText(
-                            text: 'e',
-                            fontSize: FontSize.s28,
-                            textColor: ColorManager.blackTextColor,
-                          )),
-                        ),
-                      ),
-                      SizedBox(width: AppSize.s10.w),
-                      SizedBox(
-                        width: AppSize.s150.w,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomText(
-                              text: 'Electrical department',
-                              fontSize: FontSize.s16,
-                              textColor: ColorManager.primaryColor,
-                            ),
-                            CustomText(
-                              text: 'created on 23 Sept, 2020',
-                              fontSize: FontSize.s12,
-                              textColor: ColorManager.primaryColor,
-                            )
-                          ],
-                        ),
-                      ),
-                      Spacer(),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: AppSize.s8, vertical: AppSize.s5),
-                        width: AppSize.s70.w,
-                        height: AppSize.s50,
-                        decoration: BoxDecoration(
-                          color: index.isEven ? ColorManager.primaryColor : Colors.transparent,
-                          border: Border.all(color: ColorManager.primaryColor),
-                          borderRadius: BorderRadius.circular(AppSize.s20.r),
-                        ),
-                        child: InkWell(
-                            onTap: () {},
-                            child: Center(
-                              child: CustomText(
-                                text: index.isEven ? 'unblock' : 'block',
-                                fontSize: FontSize.s14,
-                                textColor: index.isEven ? ColorManager.blackTextColor : ColorManager.primaryColor,
+                          width: double.infinity,
+                          child: Row(
+                            children: [
+                              ClipOval(
+                                child: Container(
+                                  color: ColorManager.primaryColor,
+                                  height: AppSize.s40.h,
+                                  width: AppSize.s35.w,
+                                  child: Center(
+                                      child: CustomText(
+                                    text: '$initialString',
+                                    fontSize: FontSize.s28,
+                                    textColor: ColorManager.blackTextColor,
+                                  )),
+                                ),
                               ),
-                            )),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          )))
+                              SizedBox(width: AppSize.s10.w),
+                              SizedBox(
+                                width: AppSize.s150.w,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CustomText(
+                                      text: channelData.channelName,
+                                      fontSize: FontSize.s16,
+                                      textColor: ColorManager.primaryColor,
+                                    ),
+                                    CustomText(
+                                      text: 'created on $formattedDate',
+                                      fontSize: FontSize.s12,
+                                      textColor: ColorManager.primaryColor,
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Spacer(),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: AppSize.s8,
+                                    vertical: AppSize.s5),
+                                width: AppSize.s70.w,
+                                decoration: BoxDecoration(
+                                    color: channelData.isBlocked == true
+                                        ? ColorManager.primaryColor
+                                        : null,
+                                    borderRadius:
+                                        BorderRadius.circular(AppSize.s20.r),
+                                    border: Border.all(
+                                        color: ColorManager.primaryColor)),
+                                child: InkWell(
+                                    onTap: () async {
+                                      showDialog(
+                                          barrierDismissible: false,
+                                          context: context,
+                                          builder: (BuildContext context) =>
+                                              const LoadingIndicator());
+
+                                      if (channelData.isBlocked == true) {
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(channelData.userId)
+                                            .collection('channels')
+                                            .doc(channelData.channelId)
+                                            .update({"isBlocked": false}).then(
+                                                (value) {
+                                          authProvider.getUserChannels(
+                                              channelData.userId);
+                                          Navigator.of(context).pop();
+                                        });
+                                      } else {
+                                        FirebaseFirestore.instance
+                                            .collection('users')
+                                            .doc(channelData.userId)
+                                            .collection('channels')
+                                            .doc(channelData.channelId)
+                                            .update({"isBlocked": true}).then(
+                                                (value) {
+                                          authProvider.getUserChannels(
+                                              channelData.userId);
+                                          Navigator.of(context).pop();
+                                        });
+                                      }
+                                    },
+                                    child: Center(
+                                      child: CustomText(
+                                        text: channelData.isBlocked == true
+                                            ? 'unblock'
+                                            : "block",
+                                        fontSize: FontSize.s14,
+                                        textColor: channelData.isBlocked == true
+                                            ? ColorManager.blackColor
+                                            : ColorManager.primaryColor,
+                                      ),
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ));
+                }
+
+                return SizedBox();
+              }),
         ],
       )),
     );
-  }
-
-  void searchUserName(BuildContext context, String value) async {
-    try {
-      DocumentSnapshot doc =
-          await channelNamesCollection.doc(value.toLowerCase()).get();
-      setState(() {
-        // print("Docs: $doc");
-      });
-
-      if (doc.exists) {
-        print("Username exist");
-        setState(() {
-          channelNameFound = true;
-          isSearching = false;
-          channelId = doc['channelId'];
-          channelName = doc['channelName'];
-        });
-      } else {
-        setState(() {
-          channelNameFound = false;
-          isSearching = false;
-        });
-        // print("Username not taken");
-      }
-    } catch (e) {
-      // print("Error: ${e.toString()}");
-
-    }
-
-    setState(() {
-      isSearching = false;
-    });
   }
 }

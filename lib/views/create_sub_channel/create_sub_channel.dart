@@ -211,7 +211,11 @@ class _CreateSubChannelState extends State<CreateSubChannel> {
                                 userId: '',
                                 channelId: channel.channelId,
                                 channelName: channel.channelName,
-                                isCreated: false);
+                                createdAt: channel.createdAt,
+                                isCreated: false,
+                                isBlocked: false,
+                              isApproved: false
+                            );
                             context
                                 .read<ChannelProvider>()
                                 .setSelectedChannel(channelModel);

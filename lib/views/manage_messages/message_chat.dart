@@ -86,6 +86,7 @@ class _MessageChatState extends State<MessageChat> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ChatNavScreen(
+                        initialString: 'c',
                         menuTitle: 'clement bako',
                         subtitle: '24 Sept. 2020',
                         withLeading: false,
